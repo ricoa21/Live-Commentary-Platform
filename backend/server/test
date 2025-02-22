@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.IO Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.js"></script>
+  </head>
+  <body>
+    <h1>Socket.IO Test</h1>
+    <div id="status">Connecting...</div>
+    <script>
+      const socket = io("http://localhost:4000");
+      socket.on("connect", () => {
+        document.getElementById("status").textContent = "Connected to server!";
+        console.log("Connected to server");
+      });
+      socket.on("disconnect", () => {
+        document.getElementById("status").textContent =
+          "Disconnected from server.";
+        console.log("Disconnected from server");
+      });
+    </script>
+  </body>
+</html>
