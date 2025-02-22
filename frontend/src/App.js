@@ -1,41 +1,53 @@
-import React, { useEffect } from 'react';
-import io from 'socket.io-client';
+import React, { useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
 import FixtureCard from './FixtureCard';
 
-function App() {
+const socket = io('http://127.0.0.1:4000', {
+  transports: ['websocket', 'polling'],
+});
+
+const App = () => {
+  const [connectionStatus, setConnectionStatus] = useState('Disconnected');
+  const [welcomeMessage, setWelcomeMessage] = useState('');
+
   useEffect(() => {
-    const socket = io('http://localhost:4000', {
-      transports: ['websocket', 'polling'],
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
+    socket.on('connect', () => {
+      console.log('Connected to server', socket.id);
+      setConnectionStatus('Connected');
     });
 
-    socket.on('connect', () => {
-      console.log('Connected to server');
+    socket.on('disconnect', (reason) => {
+      console.log('Disconnected from server', reason);
+      setConnectionStatus('Disconnected');
     });
 
     socket.on('connect_error', (error) => {
-      console.error('Connection Error:', error);
+      console.error('Connection Error:', error.message);
+      setConnectionStatus('Error: ' + error.message);
     });
 
-    return () => socket.disconnect();
+    socket.on('welcome', (message) => {
+      console.log('Received welcome message:', message);
+      setWelcomeMessage(message);
+    });
+
+    return () => {
+      console.log('Cleaning up socket listeners');
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('connect_error');
+      socket.off('welcome');
+    };
   }, []);
 
-  const fixtureData = {
-    teamA: 'Manchester United',
-    teamB: 'Liverpool',
-    teamALogo: 'https://example.com/man-utd-logo.png',
-    teamBLogo: 'https://example.com/liverpool-logo.png',
-    date: '2023-02-20',
-    time: '20:00',
-  };
-
   return (
-    <div className="App">
-      <h1>Upcoming Fixtures</h1>
-      <FixtureCard fixture={fixtureData} />
+    <div>
+      <h1>Live Commentary Platform</h1>
+      <p>Connection Status: {connectionStatus}</p>
+      {welcomeMessage && <p>Server Message: {welcomeMessage}</p>}
+      <FixtureCard />
     </div>
   );
-}
+};
 
 export default App;
