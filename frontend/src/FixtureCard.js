@@ -2,25 +2,46 @@ import React from 'react';
 import './FixtureCard.css'; // Import the CSS file
 
 function FixtureCard({ fixture }) {
+  // Check if fixture is undefined or null
+  if (!fixture) {
+    return <div className="fixture-card loading">Loading fixture data...</div>;
+  }
+
+  // Destructure the fixture object with default values
+  const {
+    teamA = 'Team A',
+    teamB = 'Team B',
+    teamALogo = 'default-logo.png',
+    teamBLogo = 'default-logo.png',
+    date = 'TBA',
+    time = 'TBA',
+  } = fixture;
+
   return (
     <div className="fixture-card">
       <div className="fixture-header">
         <img
           className="team-logo"
-          src={fixture.teamALogo}
-          alt={fixture.teamA}
+          src={teamALogo}
+          alt={teamA}
+          onError={(e) => {
+            e.target.src = 'default-logo.png';
+          }}
         />
         <h3>
-          {fixture.teamA} vs {fixture.teamB}
+          {teamA} vs {teamB}
         </h3>
         <img
           className="team-logo"
-          src={fixture.teamBLogo}
-          alt={fixture.teamB}
+          src={teamBLogo}
+          alt={teamB}
+          onError={(e) => {
+            e.target.src = 'default-logo.png';
+          }}
         />
       </div>
-      <p>Date: {fixture.date}</p>
-      <p>Time: {fixture.time}</p>
+      <p>Date: {date}</p>
+      <p>Time: {time}</p>
       <button className="vote-button">Vote for Commentator</button>
       <button className="watch-button">Watch Live</button>
     </div>
