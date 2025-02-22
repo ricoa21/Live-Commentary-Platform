@@ -2,12 +2,7 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
-const { Sequelize } = require("sequelize");
-
-const sequelize = new Sequelize("commentary_database", "postgres", null, {
-  host: "localhost",
-  dialect: "postgres",
-});
+const sequelize = require("./config/database");
 
 const User = require("./models/User");
 const Comment = require("./models/Comment");
