@@ -65,13 +65,15 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// New protected route for posting comments
+// Updated protected route for posting comments
 router.post("/comments", auth, async (req, res) => {
   try {
     const { content } = req.body;
     if (!content) {
       return res.status(400).json({ message: "Comment content is required" });
     }
+
+    console.log("New comment received:", content);
 
     // Here you would typically save the comment to your database
     // For now, we'll just send a success response
