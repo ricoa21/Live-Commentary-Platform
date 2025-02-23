@@ -50,6 +50,9 @@ function App() {
         );
 
         if (response.ok) {
+          const data = await response.json();
+          console.log(data.message); // This will log "Comment posted successfully" to the browser console
+          alert(data.message); // This will show an alert with "Comment posted successfully"
           socket.emit('new_comment', newComment);
           setNewComment('');
         } else {
