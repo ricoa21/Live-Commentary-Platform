@@ -1,4 +1,6 @@
 // config/database.js
+const { Sequelize } = require("sequelize"); // Import Sequelize
+
 const sequelize = new Sequelize(
   "commentary_database",
   "ricoa21",
@@ -9,4 +11,4 @@ const sequelize = new Sequelize(
   }
 );
 
-module.exports = sequelize;
+module.exports = sequelize; // Export the sequelize instance
