@@ -37,14 +37,17 @@ function App() {
       }
 
       try {
-        const response = await fetch('http://localhost:4000/api/comments', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ content: newComment }),
-        });
+        const response = await fetch(
+          'http://localhost:4000/api/auth/comments',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ content: newComment }),
+          }
+        );
 
         if (response.ok) {
           socket.emit('new_comment', newComment);
@@ -55,6 +58,9 @@ function App() {
         }
       } catch (error) {
         console.error('Error posting comment:', error);
+        if (error.response) {
+          console.error('Response:', await error.response.text());
+        }
         alert('Error posting comment');
       }
     }
