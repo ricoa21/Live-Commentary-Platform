@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
+import RegisterForm from './components/RegisterForm'; // Import the RegisterForm component
 
 const socket = io('http://localhost:4000');
 
 function App() {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [showRegister, setShowRegister] = useState(false); // New state to toggle registration form
 
   useEffect(() => {
     socket.on('comment_received', (comment) => {
@@ -28,6 +30,11 @@ function App() {
   return (
     <div>
       <h1>Live Commentary</h1>
+      <button onClick={() => setShowRegister(!showRegister)}>
+        {showRegister ? 'Hide Registration' : 'Show Registration'}
+      </button>
+      {showRegister && <RegisterForm />}{' '}
+      {/* Render RegisterForm when showRegister is true */}
       <form onSubmit={handleSubmit}>
         <input
           type="text"
