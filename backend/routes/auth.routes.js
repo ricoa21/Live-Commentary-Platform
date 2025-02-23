@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const auth = require("../middleware/auth");
 
 // Registration route
 router.post("/register", async (req, res) => {
@@ -46,15 +47,38 @@ router.post("/login", async (req, res) => {
     const { username, password } = req.body;
     const user = await User.findOne({ where: { username } });
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
-    const token = jwt.sign({ userId: user.id }, "your_jwt_secret", {
+    const token = jwt.sign({ id: user.id }, "your_jwt_secret", {
       expiresIn: "1h",
     });
-    res.json({ token });
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+      },
+    });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ message: "Error logging in" });
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// New protected route for posting comments
+router.post("/comments", auth, async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content) {
+      return res.status(400).json({ message: "Comment content is required" });
+    }
+
+    // Here you would typically save the comment to your database
+    // For now, we'll just send a success response
+    res.status(201).json({ message: "Comment posted successfully" });
+  } catch (error) {
+    console.error("Error posting comment:", error);
+    res.status(500).json({ message: "Error posting comment" });
   }
 });
 

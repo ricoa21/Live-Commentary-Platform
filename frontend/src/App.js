@@ -1,45 +1,89 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import RegisterForm from './components/RegisterForm';
-import LoginForm from './components/LoginForm'; // Import the LoginForm component
+import LoginForm from './components/LoginForm';
 
 const socket = io('http://localhost:4000');
 
 function App() {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
-  const [showAuth, setShowAuth] = useState(false); // Renamed to showAuth
-  const [isLogin, setIsLogin] = useState(true); // New state to toggle between login and register
+  const [showAuth, setShowAuth] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     socket.on('comment_received', (comment) => {
       setComments((prevComments) => [...prevComments, comment]);
     });
 
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true);
+    }
+
     return () => {
       socket.off('comment_received');
     };
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (newComment.trim()) {
-      socket.emit('new_comment', newComment);
-      setNewComment('');
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please log in to post comments');
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:4000/api/comments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ content: newComment }),
+        });
+
+        if (response.ok) {
+          socket.emit('new_comment', newComment);
+          setNewComment('');
+        } else {
+          const data = await response.json();
+          alert(data.message || 'Failed to post comment');
+        }
+      } catch (error) {
+        console.error('Error posting comment:', error);
+        alert('Error posting comment');
+      }
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
   };
 
   return (
     <div>
       <h1>Live Commentary</h1>
-      <button onClick={() => setShowAuth(!showAuth)}>
-        {showAuth ? 'Hide Auth' : 'Show Auth'}
-      </button>
-      {showAuth && (
+      {isLoggedIn ? (
+        <button onClick={handleLogout}>Logout</button>
+      ) : (
+        <button onClick={() => setShowAuth(!showAuth)}>
+          {showAuth ? 'Hide Auth' : 'Show Auth'}
+        </button>
+      )}
+      {showAuth && !isLoggedIn && (
         <div>
           <button onClick={() => setIsLogin(true)}>Login</button>
           <button onClick={() => setIsLogin(false)}>Register</button>
-          {isLogin ? <LoginForm /> : <RegisterForm />}
+          {isLogin ? (
+            <LoginForm setIsLoggedIn={setIsLoggedIn} />
+          ) : (
+            <RegisterForm />
+          )}
         </div>
       )}
       <form onSubmit={handleSubmit}>
