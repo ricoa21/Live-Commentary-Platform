@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function LoginForm() {
+function LoginForm({ setIsLoggedIn }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -16,6 +16,7 @@ function LoginForm() {
       const data = await response.json();
       if (response.ok) {
         localStorage.setItem('token', data.token);
+        setIsLoggedIn(true);
         setMessage('Login successful!');
       } else {
         setMessage(data.message || 'Login failed');
