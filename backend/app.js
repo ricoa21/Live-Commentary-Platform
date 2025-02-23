@@ -25,6 +25,7 @@ testConnection();
 
 const app = express();
 app.use(cors());
+app.use(express.json()); // Added this line to parse JSON request bodies
 
 const authRoutes = require("./routes/auth.routes");
 app.use("/api/auth", authRoutes);
