@@ -3,6 +3,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const sequelize = require("./config/database");
+const authRoutes = require("./routes/auth.routes");
 
 const User = require("./models/User");
 const Comment = require("./models/Comment");
