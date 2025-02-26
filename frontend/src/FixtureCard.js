@@ -2,9 +2,8 @@ import React from 'react';
 import './FixtureCard.css'; // Import the CSS file
 
 function FixtureCard({ fixture }) {
-  // Check if fixture is undefined or null
   if (!fixture) {
-    return <div className="fixture-card loading">Loading fixture data...</div>;
+    return <div>Loading...</div>;
   }
 
   // Destructure the fixture object with default values
