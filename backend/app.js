@@ -7,9 +7,11 @@ const sequelize = require("./config/database");
 const User = require("./models/User");
 const Comment = require("./models/Comment");
 
+// Associations
 Comment.belongsTo(User);
 User.hasMany(Comment);
 
+// Test database connection
 async function testConnection() {
   try {
     await sequelize.authenticate();
@@ -24,14 +26,21 @@ async function testConnection() {
 testConnection();
 
 const app = express();
-app.use(cors());
-app.use(express.json()); // Added this line to parse JSON request bodies
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Allow your React frontend
+    methods: ["GET", "POST"],
+    credentials: true, // Enable cookies/session support if needed
+  })
+);
+app.use(express.json());
 
+// Routes
 const authRoutes = require("./routes/auth.routes");
 app.use("/api/auth", authRoutes);
 
 const server = http.createServer(app);
-const io = require("socket.io")(server, {
+const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
     methods: ["GET", "POST"],
@@ -39,23 +48,40 @@ const io = require("socket.io")(server, {
   },
 });
 
+// Socket.IO logic
 io.on("connection", (socket) => {
+  console.log(`User connected: ${socket.id}`);
+
   socket.on("new_comment", async (commentData) => {
     try {
       const { content, userId } = commentData;
+
+      // Check if the user exists
+      const user = await User.findByPk(userId);
+      if (!user) {
+        console.error(`User with ID ${userId} not found`);
+        return;
+      }
+
       const comment = await Comment.create({ content, UserId: userId });
       const commentWithUser = await Comment.findByPk(comment.id, {
         include: [{ model: User, attributes: ["username"] }],
       });
+
       io.emit("comment_received", commentWithUser);
     } catch (error) {
       console.error("Error saving comment:", error);
     }
   });
+
+  socket.on("disconnect", () => {
+    console.log(`User disconnected: ${socket.id}`);
+  });
 });
 
 const PORT = 4000;
 
+// Sync database and start server
 sequelize
   .sync({ force: false })
   .then(() => {
