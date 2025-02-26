@@ -27,6 +27,7 @@ testConnection();
 
 const app = express();
 
+// Enable CORS with specific options
 const corsOptions = {
   origin: "http://localhost:3000",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -60,8 +61,8 @@ io.on("connection", (socket) => {
       if (!user) {
         console.error(`User with ID ${userId} not found`);
         return;
-        return;
       }
+
       const comment = await Comment.create({ content, UserId: userId });
       const commentWithUser = await Comment.findByPk(comment.id, {
         include: [{ model: User, attributes: ["username"] }],
