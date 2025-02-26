@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
+import ErrorBoundary from './ErrorBoundary'; // Import the ErrorBoundary component
 
 function CommentFeed() {
   const [comments, setComments] = useState([]);
@@ -19,7 +20,9 @@ function CommentFeed() {
   return (
     <div>
       {comments.map((comment) => (
-        <div key={comment.id}>{comment.text}</div>
+        <ErrorBoundary key={comment.id}>
+          <div>{comment.text}</div>
+        </ErrorBoundary>
       ))}
     </div>
   );
