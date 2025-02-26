@@ -14,10 +14,10 @@ export const getFixtures = async () => {
   try {
     const response = await api.get('/fixtures', {
       params: {
-        include: 'localTeam,visitorTeam', // Ensure proper capitalization
+        include: 'localTeam,visitorTeam', // Correct capitalization
       },
     });
-    return response.data.data;
+    return response.data.data; // Return only the data array
   } catch (error) {
     console.error('Error fetching fixtures:', error);
     return [];
