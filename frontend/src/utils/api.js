@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_KEY = process.env.REACT_APP_SPORTSMONK_API_KEY;
 const BASE_URL = 'https://api.sportmonks.com/v3/football';
+const API_KEY = 'ygK23d0Wym1qwEEu7Zch3fEO01VzhuNltJoR1sYEsbLNxCshvjEmTY3E3beE';
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -14,7 +14,7 @@ export const getFixtures = async () => {
   try {
     const response = await api.get('/fixtures', {
       params: {
-        include: 'localTeam,visitorTeam',
+        include: 'localTeam,visitorTeam', // Ensure proper capitalization
       },
     });
     return response.data.data;
