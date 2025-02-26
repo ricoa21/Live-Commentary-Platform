@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
-import ErrorBoundary from './ErrorBoundary'; // Import the ErrorBoundary component
+import ErrorBoundary from '../ErrorBoundary'; // Import the ErrorBoundary component
 
 function CommentFeed() {
   const [comments, setComments] = useState([]);
