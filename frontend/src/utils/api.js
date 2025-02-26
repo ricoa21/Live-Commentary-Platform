@@ -5,22 +5,39 @@ const API_KEY = 'ygK23d0Wym1qwEEu7Zch3fEO01VzhuNltJoR1sYEsbLNxCshvjEmTY3E3beE';
 
 const api = axios.create({
   baseURL: BASE_URL,
-  params: {
-    api_token: API_KEY,
+  headers: {
+    Authorization: API_KEY,
+    Accept: 'application/json',
   },
 });
 
-export const getFixtures = async () => {
+export const getFixtures = async (params = {}) => {
   try {
     const response = await api.get('/fixtures', {
       params: {
-        include: 'localTeam,visitorTeam', // Correct capitalization
+        include: 'localTeam,visitorTeam',
+        ...params,
       },
     });
-    return response.data.data; // Return only the data array
+    return response.data.data;
   } catch (error) {
     console.error('Error fetching fixtures:', error);
-    return [];
+    throw error;
+  }
+};
+
+export const getFixtureById = async (fixtureId, params = {}) => {
+  try {
+    const response = await api.get(`/fixtures/${fixtureId}`, {
+      params: {
+        include: 'localTeam,visitorTeam,events,statistics',
+        ...params,
+      },
+    });
+    return response.data.data;
+  } catch (error) {
+    console.error(`Error fetching fixture ${fixtureId}:`, error);
+    throw error;
   }
 };
 
