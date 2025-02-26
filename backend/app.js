@@ -3,6 +3,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const sequelize = require("./config/database");
+const axios = require("axios");
 
 const User = require("./models/User");
 const Comment = require("./models/Comment");
@@ -40,6 +41,51 @@ app.use(express.json());
 
 const authRoutes = require("./routes/auth.routes");
 app.use("/api/auth", authRoutes);
+
+const SPORTMONKS_BASE_URL = "https://api.sportmonks.com/v3/football";
+const SPORTMONKS_API_KEY =
+  "ygK23d0Wym1qwEEu7Zch3fEO01VzhuNltJoR1sYEsbLNxCshvjEmTY3E3beE";
+
+app.get("/api/fixtures", async (req, res) => {
+  try {
+    const response = await axios.get(`${SPORTMONKS_BASE_URL}/fixtures`, {
+      params: {
+        api_token: SPORTMONKS_API_KEY,
+        include: "participants",
+        ...req.query,
+      },
+      headers: {
+        Accept: "application/json",
+      },
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error("Error fetching fixtures:", error);
+    res.status(500).json({ error: "Failed to fetch fixtures" });
+  }
+});
+
+app.get("/api/fixtures/:id", async (req, res) => {
+  try {
+    const response = await axios.get(
+      `${SPORTMONKS_BASE_URL}/fixtures/${req.params.id}`,
+      {
+        params: {
+          api_token: SPORTMONKS_API_KEY,
+          include: "participants,events,statistics",
+          ...req.query,
+        },
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+    res.json(response.data);
+  } catch (error) {
+    console.error(`Error fetching fixture ${req.params.id}:`, error);
+    res.status(500).json({ error: "Failed to fetch fixture" });
+  }
+});
 
 const server = http.createServer(app);
 const io = new Server(server, {
