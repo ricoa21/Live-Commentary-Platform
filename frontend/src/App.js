@@ -8,6 +8,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import CommentFeed from './components/CommentFeed';
 import FixtureList from './components/FixtureList'; // Added FixtureList Component
+import ErrorBoundary from './ErrorBoundary';
 
 function App() {
   // State variables for authentication-related logic
@@ -57,7 +58,9 @@ function App() {
           <Route path="/register" element={<Register />} />
         </Routes>
         <FixtureList /> {/* Added FixtureList Component */}
-        <CommentFeed />
+        <ErrorBoundary>
+          <CommentFeed />
+        </ErrorBoundary>
         <Footer />
       </div>
     </Router>

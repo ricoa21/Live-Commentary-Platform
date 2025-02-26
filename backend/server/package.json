@@ -14,6 +14,12 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "sequelize": "^6.35.1",
+    "pg": "^8.11.3",
+    "pg-hstore": "^2.9.11"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }

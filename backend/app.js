@@ -27,31 +27,28 @@ testConnection();
 
 const app = express();
 
-// Enable CORS with specific options
 const corsOptions = {
-  origin: "http://localhost:3000", // Allow requests from this origin
+  origin: "http://localhost:3000",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  credentials: true, // Allow cookies to be sent in requests
-  optionsSuccessStatus: 204, // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  credentials: true,
+  optionsSuccessStatus: 204,
 };
-app.use(cors(corsOptions)); // Use the configured CORS options
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
-// Routes
 const authRoutes = require("./routes/auth.routes");
 app.use("/api/auth", authRoutes);
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000", // Reflect the allowed origin
+    origin: "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
-// Socket.IO logic
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
 
@@ -59,13 +56,12 @@ io.on("connection", (socket) => {
     try {
       const { content, userId } = commentData;
 
-      // Check if the user exists
       const user = await User.findByPk(userId);
       if (!user) {
         console.error(`User with ID ${userId} not found`);
         return;
+        return;
       }
-
       const comment = await Comment.create({ content, UserId: userId });
       const commentWithUser = await Comment.findByPk(comment.id, {
         include: [{ model: User, attributes: ["username"] }],
@@ -84,7 +80,6 @@ io.on("connection", (socket) => {
 
 const PORT = 4000;
 
-// Sync database and start server
 sequelize
   .sync({ force: false })
   .then(() => {
