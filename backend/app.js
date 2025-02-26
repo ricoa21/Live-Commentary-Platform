@@ -26,13 +26,16 @@ async function testConnection() {
 testConnection();
 
 const app = express();
-app.use(
-  cors({
-    origin: "http://localhost:3000", // Allow your React frontend
-    methods: ["GET", "POST"],
-    credentials: true, // Enable cookies/session support if needed
-  })
-);
+
+// Enable CORS with specific options
+const corsOptions = {
+  origin: "http://localhost:3000", // Allow requests from this origin
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true, // Allow cookies to be sent in requests
+  optionsSuccessStatus: 204, // Some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+app.use(cors(corsOptions)); // Use the configured CORS options
+
 app.use(express.json());
 
 // Routes
@@ -42,7 +45,7 @@ app.use("/api/auth", authRoutes);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "http://localhost:3000", // Reflect the allowed origin
     methods: ["GET", "POST"],
     credentials: true,
   },
