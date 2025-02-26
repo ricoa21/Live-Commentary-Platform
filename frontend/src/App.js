@@ -7,19 +7,23 @@ import Register from './pages/Register';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import CommentFeed from './components/CommentFeed';
+import FixtureList from './components/FixtureList'; // Added FixtureList Component
 
 function App() {
+  // State variables for authentication-related logic
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
 
+  // useEffect hook to check for a token in localStorage on component mount
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       setIsLoggedIn(true);
     }
-  }, []);
+  }, []); // Empty dependency array ensures this effect runs only once on mount
 
+  // Function to handle user logout
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
@@ -52,6 +56,7 @@ function App() {
           />
           <Route path="/register" element={<Register />} />
         </Routes>
+        <FixtureList /> {/* Added FixtureList Component */}
         <CommentFeed />
         <Footer />
       </div>
