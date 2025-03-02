@@ -2,7 +2,7 @@ import React from 'react';
 import './FixtureCard.css';
 
 function FixtureCard({ fixture }) {
-  if (!fixture || !fixture.participants) {
+  if (!fixture || !fixture.data) {
     return <div className="fixture-card loading">Loading fixture data...</div>;
   }
 
