@@ -1,18 +1,19 @@
 import React from 'react';
-import './FixtureCard.css';
+import './FixtureCard.css'; // Import the CSS file
 
 function FixtureCard({ fixture }) {
+  // Check if fixture or participants are undefined
   if (!fixture || !fixture.participants) {
     return <div className="fixture-card loading">Loading fixture data...</div>;
   }
 
-  const localTeam = fixture.participants.find(
-    (team) => team.meta.location === 'home'
-  );
-  const visitorTeam = fixture.participants.find(
-    (team) => team.meta.location === 'away'
-  );
+  // Extract local and visitor teams from participants
+  const localTeam =
+    fixture.participants.find((team) => team.meta.location === 'home') || {};
+  const visitorTeam =
+    fixture.participants.find((team) => team.meta.location === 'away') || {};
 
+  // Format date and time
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB', {
@@ -35,19 +36,20 @@ function FixtureCard({ fixture }) {
       <div className="fixture-header">
         <img
           className="team-logo"
-          src={localTeam.image_path}
-          alt={localTeam.name}
+          src={localTeam.image_path || 'default-logo.png'}
+          alt={localTeam.name || 'Local Team'}
           onError={(e) => {
             e.target.src = 'default-logo.png';
           }}
         />
         <h3>
-          {localTeam.name} vs {visitorTeam.name}
+          {localTeam.name || 'Local Team'} vs{' '}
+          {visitorTeam.name || 'Visitor Team'}
         </h3>
         <img
           className="team-logo"
-          src={visitorTeam.image_path}
-          alt={visitorTeam.name}
+          src={visitorTeam.image_path || 'default-logo.png'}
+          alt={visitorTeam.name || 'Visitor Team'}
           onError={(e) => {
             e.target.src = 'default-logo.png';
           }}
