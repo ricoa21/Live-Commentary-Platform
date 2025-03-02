@@ -44,7 +44,7 @@ function FixtureList() {
     <div className="fixture-list">
       <h1>Upcoming Fixtures</h1>
       {Object.entries(groupedFixtures).map(([date, fixturesForDate]) => (
-        <div key={date}>
+        <div key={date} className="fixture-group">
           <h2>{date}</h2>
           {fixturesForDate.map((fixture) => (
             <ErrorBoundary key={fixture.id}>
