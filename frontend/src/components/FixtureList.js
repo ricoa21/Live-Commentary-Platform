@@ -1,25 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { getFixtures } from '../utils/api';
 import FixtureCard from './FixtureCard';
+import api from './api'; // Assuming you have an Axios instance set up
 
 function FixtureList() {
-  const [fixtures, setFixtures] = useState([]);
+  const [fixtures, setFixtures] = useState([]); // Initialize as an empty array
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const data = await getFixtures();
-      setFixtures(data);
-      setLoading(false);
-    };
-    fetchData();
+    async function fetchFixtures() {
+      try {
+        const response = await api.get('/fixtures'); // Fetch fixtures from your backend API
+        setFixtures(response.data.data); // Update state with fetched data
+      } catch (error) {
+        console.error('Error fetching fixtures:', error);
+      } finally {
+        setLoading(false); // Stop loading spinner
+      }
+    }
+
+    fetchFixtures();
   }, []);
 
-  if (loading) return <p>Loading fixtures...</p>;
+  if (loading) {
+    return <div>Loading fixtures...</div>;
+  }
+
+  if (!fixtures.length) {
+    return <div>No fixtures available.</div>;
+  }
 
   return (
-    <div>
-      <h1>Upcoming Fixtures</h1>
+    <div className="fixture-list">
       {fixtures.map((fixture) => (
         <FixtureCard key={fixture.id} fixture={fixture} />
       ))}
