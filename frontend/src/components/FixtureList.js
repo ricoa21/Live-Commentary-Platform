@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getFixtures } from '../utils/api';
 import FixtureCard from './FixtureCard';
-import ErrorBoundary from './ErrorBoundary';
+import ErrorBoundary from '../ErrorBoundary';
 
 function FixtureList() {
   const [fixtures, setFixtures] = useState([]);

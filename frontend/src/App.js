@@ -8,7 +8,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import CommentFeed from './components/CommentFeed';
 import FixtureList from './components/FixtureList';
-import ErrorBoundary from './components/ErrorBoundary'; // Updated import path
+import ErrorBoundary from './ErrorBoundary';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
