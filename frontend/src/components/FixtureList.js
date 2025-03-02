@@ -7,26 +7,19 @@ function FixtureList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchFixtures() {
-      try {
-        const data = await getFixtures();
-        setFixtures(data);
-      } catch (error) {
-        console.error('Error fetching fixtures:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchFixtures();
+    const fetchData = async () => {
+      const data = await getFixtures();
+      setFixtures(data);
+      setLoading(false);
+    };
+    fetchData();
   }, []);
 
-  if (loading) {
-    return <div>Loading fixtures...</div>;
-  }
+  if (loading) return <p>Loading fixtures...</p>;
 
   return (
-    <div className="fixture-list">
+    <div>
+      <h1>Upcoming Fixtures</h1>
       {fixtures.map((fixture) => (
         <FixtureCard key={fixture.id} fixture={fixture} />
       ))}
