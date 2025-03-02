@@ -2,7 +2,7 @@ import React from 'react';
 import './FixtureCard.css';
 
 function FixtureCard({ fixture }) {
-  if (!fixture || !fixture.data) {
+  if (!fixture || !fixture.participants) {
     return <div className="fixture-card loading">Loading fixture data...</div>;
   }
 
@@ -12,6 +12,7 @@ function FixtureCard({ fixture }) {
     fixture.participants.find((team) => team.meta.location === 'away') || {};
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'TBA';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB', {
       day: 'numeric',
@@ -21,6 +22,7 @@ function FixtureCard({ fixture }) {
   };
 
   const formatTime = (dateString) => {
+    if (!dateString) return 'TBA';
     const date = new Date(dateString);
     return date.toLocaleTimeString('en-GB', {
       hour: '2-digit',
