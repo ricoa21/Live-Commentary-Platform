@@ -1,5 +1,5 @@
 import React from 'react';
-import './FixtureCard.css';
+import '../FixtureCard.css';
 
 function FixtureCard({ fixture }) {
   if (!fixture || !fixture.participants) {
