@@ -1,19 +1,16 @@
 import React from 'react';
-import './FixtureCard.css'; // Import the CSS file
+import './FixtureCard.css';
 
 function FixtureCard({ fixture }) {
-  // Check if fixture or participants are undefined
   if (!fixture || !fixture.participants) {
     return <div className="fixture-card loading">Loading fixture data...</div>;
   }
 
-  // Extract local and visitor teams from participants
   const localTeam =
     fixture.participants.find((team) => team.meta.location === 'home') || {};
   const visitorTeam =
     fixture.participants.find((team) => team.meta.location === 'away') || {};
 
-  // Format date and time
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB', {
@@ -31,8 +28,12 @@ function FixtureCard({ fixture }) {
     });
   };
 
+  const isLive = new Date(fixture.starting_at) <= new Date() && !fixture.ended;
+  const commentatorAvailable =
+    !fixture.commentators || fixture.commentators.length < 2;
+
   return (
-    <div className="fixture-card">
+    <div className={`fixture-card ${isLive ? 'live' : ''}`}>
       <div className="fixture-header">
         <img
           className="team-logo"
@@ -57,8 +58,17 @@ function FixtureCard({ fixture }) {
       </div>
       <p>Date: {formatDate(fixture.starting_at)}</p>
       <p>Time: {formatTime(fixture.starting_at)}</p>
-      <button className="commentate-button">Become a Commentator</button>
-      <button className="watch-button">Watch Live</button>
+      {isLive && <p className="live-indicator">LIVE NOW</p>}
+      {commentatorAvailable ? (
+        <button className="commentate-button">Become a Commentator</button>
+      ) : (
+        <button className="commentate-button" disabled>
+          Commentators Full
+        </button>
+      )}
+      <a href={`/live-commentary/${fixture.id}`} className="watch-button">
+        {isLive ? 'Watch Live' : 'View Match Details'}
+      </a>
     </div>
   );
 }
