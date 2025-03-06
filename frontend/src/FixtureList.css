@@ -1,0 +1,16 @@
+.fixture-list {
+  font-family: Arial, sans-serif;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.fixture-group {
+  margin-bottom: 20px;
+}
+
+.date-header {
+  background-color: #f0f0f0;
+  padding: 10px;
+  font-size: 18px;
+  font-weight: bold;
+}

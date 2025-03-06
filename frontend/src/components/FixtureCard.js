@@ -1,78 +1,37 @@
 import React from 'react';
-import '../FixtureCard.css';
 
 function FixtureCard({ fixture }) {
-  if (!fixture || !fixture.participants) {
-    return <div className="fixture-card loading">Loading fixture data...</div>;
-  }
-
-  const localTeam =
-    fixture.participants.find((team) => team.meta.location === 'home') || {};
-  const visitorTeam =
-    fixture.participants.find((team) => team.meta.location === 'away') || {};
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'TBA';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-
-  const formatTime = (dateString) => {
-    if (!dateString) return 'TBA';
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const isLive = new Date(fixture.starting_at) <= new Date() && !fixture.ended;
-  const commentatorAvailable =
-    !fixture.commentators || fixture.commentators.length < 2;
-
   return (
-    <div className={`fixture-card ${isLive ? 'live' : ''}`}>
-      <div className="fixture-header">
+    <div className="fixture-card">
+      <div className="team home-team">
         <img
+          src={fixture.homeTeam.logo}
+          alt={fixture.homeTeam.name}
           className="team-logo"
-          src={localTeam.image_path || 'default-logo.png'}
-          alt={localTeam.name || 'Local Team'}
-          onError={(e) => {
-            e.target.src = 'default-logo.png';
-          }}
         />
-        <h3>
-          {localTeam.name || 'Local Team'} vs{' '}
-          {visitorTeam.name || 'Visitor Team'}
-        </h3>
-        <img
-          className="team-logo"
-          src={visitorTeam.image_path || 'default-logo.png'}
-          alt={visitorTeam.name || 'Visitor Team'}
-          onError={(e) => {
-            e.target.src = 'default-logo.png';
-          }}
-        />
+        <span className="team-name">{fixture.homeTeam.name}</span>
       </div>
-      <p>Date: {formatDate(fixture.starting_at)}</p>
-      <p>Time: {formatTime(fixture.starting_at)}</p>
-      {isLive && <p className="live-indicator">LIVE NOW</p>}
-      {commentatorAvailable ? (
-        <button className="commentate-button">Become a Commentator</button>
-      ) : (
-        <button className="commentate-button" disabled>
-          Commentators Full
-        </button>
-      )}
-      <a href={`/live-commentary/${fixture.id}`} className="watch-button">
-        {isLive ? 'Watch Live' : 'View Match Details'}
-      </a>
+      <div className="match-details">
+        <span className="kick-off-time">{formatTime(fixture.date)}</span>
+        <span className="score">{fixture.score || 'vs'}</span>
+      </div>
+      <div className="team away-team">
+        <img
+          src={fixture.awayTeam.logo}
+          alt={fixture.awayTeam.name}
+          className="team-logo"
+        />
+        <span className="team-name">{fixture.awayTeam.name}</span>
+      </div>
     </div>
   );
+}
+
+function formatTime(dateString) {
+  return new Date(dateString).toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 export default FixtureCard;

@@ -1,12 +1,29 @@
-/* general styles */
+/* Add these to your existing styles */
 .fixture-card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
+  /* ... your existing styles ... */
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 }
-/* ... (rest of the CSS code) ... */
+
+.team-logo {
+  width: 30px;
+  height: 30px;
+  margin: 0 10px;
+}
+
+.match-details {
+  text-align: center;
+}
+
+.kick-off-time {
+  font-size: 14px;
+  color: #666;
+}
+
+.score {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 5px;
+}
