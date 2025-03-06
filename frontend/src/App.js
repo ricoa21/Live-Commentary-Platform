@@ -10,6 +10,7 @@ import CommentFeed from './components/CommentFeed';
 import FixtureList from './components/FixtureList';
 import ErrorBoundary from './ErrorBoundary';
 import LiveCommentary from './components/LiveCommentary';
+import UpcomingFixtures from './components/UpcomingFixtures';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -57,6 +58,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/live-commentary/:id" element={<LiveCommentary />} />
           </Routes>
+          <UpcomingFixtures />
           <FixtureList />
           <CommentFeed />
           <Footer />
