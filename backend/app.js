@@ -36,34 +36,10 @@ app.get("/api/fixtures/scotland", async (req, res) => {
   try {
     console.log("Fetching Scottish Premiership fixtures...");
 
-    // Step 1: Get the current season ID
-    const leagueResponse = await axios.get(
-      `${SPORTMONKS_BASE_URL}/leagues/501`,
-      {
-        params: {
-          api_token: SPORTMONKS_API_KEY,
-          include: "currentSeason",
-        },
-      }
-    );
+    // Hardcode verified season ID from API response
+    const currentSeasonId = 23690; // From your API response
 
-    console.log(
-      "League API Response:",
-      JSON.stringify(leagueResponse.data, null, 2)
-    );
-
-    if (
-      !leagueResponse.data.data ||
-      !leagueResponse.data.data.current_season_id
-    ) {
-      console.error("Invalid league response structure");
-      return res.status(500).json({ error: "Invalid league data from API" });
-    }
-
-    const currentSeasonId = leagueResponse.data.data.current_season_id;
-    console.log(`Current Season ID: ${currentSeasonId}`);
-
-    // Step 2: Fetch fixtures
+    // Fetch fixtures directly with known season ID
     const fixturesResponse = await axios.get(
       `${SPORTMONKS_BASE_URL}/fixtures`,
       {
@@ -72,9 +48,10 @@ app.get("/api/fixtures/scotland", async (req, res) => {
           league_id: 501,
           season_id: currentSeasonId,
           include: "participants",
-          filters: "status:NS",
+          status: "NS", // Correct parameter format
           sort: "starting_at",
           timezone: "Europe/London",
+          per_page: 20,
         },
       }
     );
@@ -122,6 +99,79 @@ app.get("/api/fixtures/scotland", async (req, res) => {
 
     res.status(500).json({
       error: "Failed to fetch fixtures",
+      details:
+        process.env.NODE_ENV === "development"
+          ? {
+              message: error.message,
+              sportmonksError: error.response?.data,
+            }
+          : null,
+    });
+  }
+});
+
+// Example endpoint for Danish Superliga (as a fallback)
+app.get("/api/fixtures/danish", async (req, res) => {
+  try {
+    console.log("Fetching Danish Superliga fixtures...");
+
+    const fixturesResponse = await axios.get(
+      `${SPORTMONKS_BASE_URL}/fixtures`,
+      {
+        params: {
+          api_token: SPORTMONKS_API_KEY,
+          league_id: 271, // Danish Superliga ID
+          include: "participants",
+          status: "NS",
+          sort: "starting_at",
+          timezone: "Europe/Copenhagen",
+          per_page: 20,
+        },
+      }
+    );
+
+    console.log(
+      "Danish Fixtures API Response:",
+      JSON.stringify(fixturesResponse.data, null, 2)
+    );
+
+    if (
+      !fixturesResponse.data.data ||
+      !Array.isArray(fixturesResponse.data.data)
+    ) {
+      console.error("Invalid fixtures response structure");
+      return res.status(500).json({ error: "Invalid fixtures data from API" });
+    }
+
+    const validFixtures = fixturesResponse.data.data.filter(
+      (fixture) =>
+        fixture.participants?.length >= 2 &&
+        new Date(fixture.starting_at) > new Date()
+    );
+
+    console.log(`Found ${validFixtures.length} valid Danish fixtures`);
+
+    res.json({
+      data: validFixtures.map((fixture) => ({
+        id: fixture.id,
+        starting_at: fixture.starting_at,
+        participants: fixture.participants.map((p) => ({
+          id: p.id,
+          name: p.name,
+          logo: p.image_path,
+        })),
+        status: fixture.status,
+      })),
+    });
+  } catch (error) {
+    console.error("Full error details for Danish fixtures:", {
+      message: error.message,
+      response: error.response?.data,
+      stack: error.stack,
+    });
+
+    res.status(500).json({
+      error: "Failed to fetch Danish fixtures",
       details:
         process.env.NODE_ENV === "development"
           ? {
