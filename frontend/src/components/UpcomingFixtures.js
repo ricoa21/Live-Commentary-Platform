@@ -10,20 +10,18 @@ const UpcomingFixtures = () => {
     const fetchFixtures = async () => {
       try {
         const response = await axios.get(
-          'https://api.sportmonks.com/v3/football/fixtures/between/2025-03-08/2025-03-10',
+          'http://localhost:4000/api/fixtures/between',
           {
             params: {
-              api_token:
-                'ygK23d0Wym1qwEEu7Zch3fEO01VzhuNltJoR1sYEsbLNxCshvjEmTY3E3beE',
-              include: 'participants',
-              league_id: 8, // Premier League ID
+              startDate: '2025-03-08',
+              endDate: '2025-03-10',
             },
           }
         );
         setFixtures(response.data.data);
         setLoading(false);
       } catch (err) {
-        setError('Failed to fetch fixtures');
+        setError('Failed to load fixtures. Please try again later.');
         setLoading(false);
       }
     };

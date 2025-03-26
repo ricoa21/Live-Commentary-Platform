@@ -87,6 +87,31 @@ app.get("/api/fixtures/:id", async (req, res) => {
   }
 });
 
+// New route for fetching fixtures between specific dates
+app.get("/api/fixtures/between", async (req, res) => {
+  try {
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+    const response = await axios.get(
+      `${SPORTMONKS_BASE_URL}/fixtures/between/${startDate}/${endDate}`,
+      {
+        params: {
+          api_token: SPORTMONKS_API_KEY,
+          include: "participants",
+          league_id: 8, // Premier League ID
+        },
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+    res.json(response.data);
+  } catch (error) {
+    console.error("Error fetching fixtures:", error);
+    res.status(500).json({ error: "Failed to fetch fixtures" });
+  }
+});
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
