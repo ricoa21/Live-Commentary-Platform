@@ -36,10 +36,8 @@ app.get("/api/fixtures/scotland", async (req, res) => {
   try {
     console.log("Fetching Scottish Premiership fixtures...");
 
-    // Hardcode verified season ID from API response
     const currentSeasonId = 23690; // From your API response
 
-    // Fetch fixtures directly with known season ID
     const fixturesResponse = await axios.get(
       `${SPORTMONKS_BASE_URL}/fixtures`,
       {
@@ -48,32 +46,23 @@ app.get("/api/fixtures/scotland", async (req, res) => {
           league_id: 501,
           season_id: currentSeasonId,
           include: "participants",
-          status: "NS", // Correct parameter format
+          status: "NS,LIVE", // Include both not started and live matches
           sort: "starting_at",
           timezone: "Europe/London",
-          per_page: 20,
+          per_page: 50, // Increase the number of fixtures returned
         },
       }
     );
 
+    console.log("Total fixtures received:", fixturesResponse.data.data.length);
     console.log(
-      "Fixtures API Response:",
-      JSON.stringify(fixturesResponse.data, null, 2)
+      "First fixture:",
+      JSON.stringify(fixturesResponse.data.data[0], null, 2)
     );
 
-    if (
-      !fixturesResponse.data.data ||
-      !Array.isArray(fixturesResponse.data.data)
-    ) {
-      console.error("Invalid fixtures response structure");
-      return res.status(500).json({ error: "Invalid fixtures data from API" });
-    }
-
-    // Filter valid fixtures
+    // Remove the date filter to see all fixtures
     const validFixtures = fixturesResponse.data.data.filter(
-      (fixture) =>
-        fixture.participants?.length >= 2 &&
-        new Date(fixture.starting_at) > new Date()
+      (fixture) => fixture.participants?.length >= 2
     );
 
     console.log(`Found ${validFixtures.length} valid fixtures`);
@@ -89,6 +78,7 @@ app.get("/api/fixtures/scotland", async (req, res) => {
         })),
         status: fixture.status,
       })),
+      meta: fixturesResponse.data.meta, // Include metadata from API response
     });
   } catch (error) {
     console.error("Full error details:", {
@@ -99,79 +89,6 @@ app.get("/api/fixtures/scotland", async (req, res) => {
 
     res.status(500).json({
       error: "Failed to fetch fixtures",
-      details:
-        process.env.NODE_ENV === "development"
-          ? {
-              message: error.message,
-              sportmonksError: error.response?.data,
-            }
-          : null,
-    });
-  }
-});
-
-// Example endpoint for Danish Superliga (as a fallback)
-app.get("/api/fixtures/danish", async (req, res) => {
-  try {
-    console.log("Fetching Danish Superliga fixtures...");
-
-    const fixturesResponse = await axios.get(
-      `${SPORTMONKS_BASE_URL}/fixtures`,
-      {
-        params: {
-          api_token: SPORTMONKS_API_KEY,
-          league_id: 271, // Danish Superliga ID
-          include: "participants",
-          status: "NS",
-          sort: "starting_at",
-          timezone: "Europe/Copenhagen",
-          per_page: 20,
-        },
-      }
-    );
-
-    console.log(
-      "Danish Fixtures API Response:",
-      JSON.stringify(fixturesResponse.data, null, 2)
-    );
-
-    if (
-      !fixturesResponse.data.data ||
-      !Array.isArray(fixturesResponse.data.data)
-    ) {
-      console.error("Invalid fixtures response structure");
-      return res.status(500).json({ error: "Invalid fixtures data from API" });
-    }
-
-    const validFixtures = fixturesResponse.data.data.filter(
-      (fixture) =>
-        fixture.participants?.length >= 2 &&
-        new Date(fixture.starting_at) > new Date()
-    );
-
-    console.log(`Found ${validFixtures.length} valid Danish fixtures`);
-
-    res.json({
-      data: validFixtures.map((fixture) => ({
-        id: fixture.id,
-        starting_at: fixture.starting_at,
-        participants: fixture.participants.map((p) => ({
-          id: p.id,
-          name: p.name,
-          logo: p.image_path,
-        })),
-        status: fixture.status,
-      })),
-    });
-  } catch (error) {
-    console.error("Full error details for Danish fixtures:", {
-      message: error.message,
-      response: error.response?.data,
-      stack: error.stack,
-    });
-
-    res.status(500).json({
-      error: "Failed to fetch Danish fixtures",
       details:
         process.env.NODE_ENV === "development"
           ? {
