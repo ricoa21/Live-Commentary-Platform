@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const TeamUpcomingFixtures = () => {
+const ScotlandFixtures = () => {
   const [fixtures, setFixtures] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -10,15 +10,10 @@ const TeamUpcomingFixtures = () => {
     const fetchFixtures = async () => {
       try {
         const response = await axios.get(
-          'http://localhost:4000/api/team/upcoming',
-          {
-            params: {
-              teamId: 32, // Example team ID
-            },
-          }
+          'http://localhost:4000/api/fixtures/scotland'
         );
 
-        if (!response.data || !response.data.data) {
+        if (!response.data || !Array.isArray(response.data.data)) {
           throw new Error('Invalid response data');
         }
 
@@ -39,22 +34,21 @@ const TeamUpcomingFixtures = () => {
 
   return (
     <div className="upcoming-fixtures">
-      <h2>Upcoming Fixtures for Team {fixtures.name}</h2>
-      {fixtures.upcoming &&
-        fixtures.upcoming.data.map((fixture) => (
-          <div key={fixture.id} className="fixture">
-            {fixture.participants && fixture.participants.length > 1 && (
-              <>
-                <span>{fixture.participants[0].name}</span>
-                <span> vs </span>
-                <span>{fixture.participants[1].name}</span>
-                <span> - {new Date(fixture.starting_at).toLocaleString()}</span>
-              </>
-            )}
-          </div>
-        ))}
+      <h2>Upcoming Scottish Premiership Fixtures</h2>
+      {fixtures.map((fixture) => (
+        <div key={fixture.id} className="fixture">
+          {fixture.participants && fixture.participants.length > 1 && (
+            <>
+              <span>{fixture.participants[0].name}</span>
+              <span> vs </span>
+              <span>{fixture.participants[1].name}</span>
+              <span> - {new Date(fixture.starting_at).toLocaleString()}</span>
+            </>
+          )}
+        </div>
+      ))}
     </div>
   );
 };
 
-export default TeamUpcomingFixtures;
+export default ScotlandFixtures;

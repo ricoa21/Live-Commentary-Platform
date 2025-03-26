@@ -131,6 +131,30 @@ app.get("/api/fixtures/between", async (req, res) => {
   }
 });
 
+app.get("/api/fixtures/scotland", async (req, res) => {
+  try {
+    const response = await axios.get(`${SPORTMONKS_BASE_URL}/fixtures`, {
+      params: {
+        api_token: SPORTMONKS_API_KEY,
+        include: "participants",
+        league_id: 501, // Scottish Premiership ID
+      },
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (response.status !== 200) {
+      return res.status(response.status).json({ error: response.statusText });
+    }
+
+    res.json(response.data);
+  } catch (error) {
+    console.error("Error fetching fixtures:", error);
+    res.status(500).json({ error: "Failed to fetch fixtures" });
+  }
+});
+
 app.get("/api/team/upcoming", async (req, res) => {
   try {
     const teamId = req.query.teamId;
