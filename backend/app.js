@@ -98,13 +98,6 @@ app.get("/api/fixtures/between", async (req, res) => {
         .json({ error: "Start and end dates are required" });
     }
 
-    // Calculate date range to ensure it's within 100 days
-    const dateRange =
-      (new Date(endDate) - new Date(startDate)) / (1000 * 3600 * 24);
-    if (dateRange > 100) {
-      return res.status(400).json({ error: "Date range exceeds 100 days" });
-    }
-
     const response = await axios.get(
       `${SPORTMONKS_BASE_URL}/fixtures/between/${startDate}/${endDate}`,
       {
