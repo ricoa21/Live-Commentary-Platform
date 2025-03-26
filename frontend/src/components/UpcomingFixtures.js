@@ -37,7 +37,7 @@ const ScotlandFixtures = () => {
       <h2>Upcoming Scottish Premiership Fixtures</h2>
       {fixtures.map((fixture) => (
         <div key={fixture.id} className="fixture">
-          {fixture.participants && fixture.participants.length > 1 && (
+          {fixture.participants && fixture.participants.length >= 2 && (
             <>
               <span>{fixture.participants[0].name}</span>
               <span> vs </span>
