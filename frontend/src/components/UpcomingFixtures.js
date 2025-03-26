@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const UpcomingFixtures = () => {
+const TeamUpcomingFixtures = () => {
   const [fixtures, setFixtures] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -10,20 +10,19 @@ const UpcomingFixtures = () => {
     const fetchFixtures = async () => {
       try {
         const response = await axios.get(
-          'http://localhost:4000/api/fixtures/between',
+          'http://localhost:4000/api/team/upcoming',
           {
             params: {
-              startDate: '2025-04-05',
-              endDate: '2025-04-06',
+              teamId: 32, // Example team ID
             },
           }
         );
 
-        if (!response.data || !Array.isArray(response.data)) {
+        if (!response.data || !response.data.data) {
           throw new Error('Invalid response data');
         }
 
-        setFixtures(response.data);
+        setFixtures(response.data.data);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching fixtures:', err);
@@ -40,21 +39,22 @@ const UpcomingFixtures = () => {
 
   return (
     <div className="upcoming-fixtures">
-      <h2>Upcoming Premier League Fixtures</h2>
-      {fixtures.map((fixture) => (
-        <div key={fixture.id} className="fixture">
-          {fixture.participants && fixture.participants.length > 1 && (
-            <>
-              <span>{fixture.participants[0].name}</span>
-              <span> vs </span>
-              <span>{fixture.participants[1].name}</span>
-              <span> - {new Date(fixture.starting_at).toLocaleString()}</span>
-            </>
-          )}
-        </div>
-      ))}
+      <h2>Upcoming Fixtures for Team {fixtures.name}</h2>
+      {fixtures.upcoming &&
+        fixtures.upcoming.data.map((fixture) => (
+          <div key={fixture.id} className="fixture">
+            {fixture.participants && fixture.participants.length > 1 && (
+              <>
+                <span>{fixture.participants[0].name}</span>
+                <span> vs </span>
+                <span>{fixture.participants[1].name}</span>
+                <span> - {new Date(fixture.starting_at).toLocaleString()}</span>
+              </>
+            )}
+          </div>
+        ))}
     </div>
   );
 };
 
-export default UpcomingFixtures;
+export default TeamUpcomingFixtures;
