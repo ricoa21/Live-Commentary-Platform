@@ -4,33 +4,24 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const sequelize = require("./config/database");
 const axios = require("axios");
+const dotenv = require("dotenv");
 
 const User = require("./models/User");
 const Comment = require("./models/Comment");
+const authRoutes = require("./routes/auth.routes");
+const auth = require("./middleware/auth");
+
+dotenv.config();
 
 // Associations
 Comment.belongsTo(User);
 User.hasMany(Comment);
 
-// Test database connection
-async function testConnection() {
-  try {
-    await sequelize.authenticate();
-    console.log(
-      "Connection to PostgreSQL database has been established successfully."
-    );
-  } catch (error) {
-    console.error("Unable to connect to the database:", error);
-  }
-}
-
-testConnection();
-
 const app = express();
 
 // Enable CORS with specific options
 const corsOptions = {
-  origin: "http://localhost:3000",
+  origin: process.env.FRONTEND_URL || "http://localhost:3000",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
   optionsSuccessStatus: 204,
@@ -39,20 +30,19 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 
-const authRoutes = require("./routes/auth.routes");
+// Routes
 app.use("/api/auth", authRoutes);
 
 const SPORTMONKS_BASE_URL = "https://api.sportmonks.com/v3/football";
-const SPORTMONKS_API_KEY =
-  "ygK23d0Wym1qwEEu7Zch3fEO01VzhuNltJoR1sYEsbLNxCshvjEmTY3E3beE";
+const SPORTMONKS_API_KEY = process.env.SPORTMONKS_API_KEY;
 
-app.get("/api/fixtures", async (req, res) => {
+// Middleware to handle API requests
+const handleApiRequest = async (url, params, res) => {
   try {
-    const response = await axios.get(`${SPORTMONKS_BASE_URL}/fixtures`, {
+    const response = await axios.get(url, {
       params: {
         api_token: SPORTMONKS_API_KEY,
-        include: "participants",
-        ...req.query,
+        ...params,
       },
       headers: {
         Accept: "application/json",
@@ -60,105 +50,51 @@ app.get("/api/fixtures", async (req, res) => {
     });
     res.json(response.data);
   } catch (error) {
-    console.error("Error fetching fixtures:", error);
-    res.status(500).json({ error: "Failed to fetch fixtures" });
+    console.error("Error fetching data:", error);
+    res.status(500).json({ error: "Failed to fetch data" });
   }
+};
+
+app.get("/api/fixtures", (req, res) => {
+  handleApiRequest(
+    `${SPORTMONKS_BASE_URL}/fixtures`,
+    { include: "participants", ...req.query },
+    res
+  );
 });
 
-app.get("/api/fixtures/:id", async (req, res) => {
-  try {
-    const response = await axios.get(
-      `${SPORTMONKS_BASE_URL}/fixtures/${req.params.id}`,
-      {
-        params: {
-          api_token: SPORTMONKS_API_KEY,
-          include: "participants,events,statistics",
-          ...req.query,
-        },
-        headers: {
-          Accept: "application/json",
-        },
-      }
-    );
-    res.json(response.data);
-  } catch (error) {
-    console.error(`Error fetching fixture ${req.params.id}:`, error);
-    res.status(500).json({ error: "Failed to fetch fixture" });
-  }
+app.get("/api/fixtures/:id", (req, res) => {
+  handleApiRequest(
+    `${SPORTMONKS_BASE_URL}/fixtures/${req.params.id}`,
+    { include: "participants,events,statistics", ...req.query },
+    res
+  );
 });
 
-app.get("/api/fixtures/between", async (req, res) => {
-  try {
-    const startDate = req.query.startDate;
-    const endDate = req.query.endDate;
-
-    if (!startDate || !endDate) {
-      return res
-        .status(400)
-        .json({ error: "Start and end dates are required" });
-    }
-
-    const response = await axios.get(
-      `${SPORTMONKS_BASE_URL}/fixtures/between/${startDate}/${endDate}`,
-      {
-        params: {
-          api_token: SPORTMONKS_API_KEY,
-          include: "participants",
-          league_id: 8, // Premier League ID
-        },
-        headers: {
-          Accept: "application/json",
-        },
-      }
-    );
-
-    if (response.status !== 200) {
-      return res.status(response.status).json({ error: response.statusText });
-    }
-
-    res.json(response.data);
-  } catch (error) {
-    console.error("Error fetching fixtures:", error);
-    if (error.response) {
-      res
-        .status(error.response.status)
-        .json({ error: error.response.statusText });
-    } else if (error.code === "ECONNABORTED") {
-      res.status(408).json({ error: "Request timed out" });
-    } else {
-      res.status(500).json({ error: "Internal Server Error" });
-    }
+app.get("/api/fixtures/between", (req, res) => {
+  const { startDate, endDate } = req.query;
+  if (!startDate || !endDate) {
+    return res.status(400).json({ error: "Start and end dates are required" });
   }
+  handleApiRequest(
+    `${SPORTMONKS_BASE_URL}/fixtures/between/${startDate}/${endDate}`,
+    { include: "participants", league_id: 8 },
+    res
+  );
 });
 
-app.get("/api/fixtures/scotland", async (req, res) => {
-  try {
-    const response = await axios.get(`${SPORTMONKS_BASE_URL}/fixtures`, {
-      params: {
-        api_token: SPORTMONKS_API_KEY,
-        include: "participants",
-        league_id: 501, // Scottish Premiership ID
-      },
-      headers: {
-        Accept: "application/json",
-      },
-    });
-
-    if (response.status !== 200) {
-      return res.status(response.status).json({ error: response.statusText });
-    }
-
-    res.json(response.data);
-  } catch (error) {
-    console.error("Error fetching fixtures:", error);
-    res.status(500).json({ error: "Failed to fetch fixtures" });
-  }
+app.get("/api/fixtures/scotland", (req, res) => {
+  handleApiRequest(
+    `${SPORTMONKS_BASE_URL}/fixtures`,
+    { include: "participants", league_id: 501 },
+    res
+  );
 });
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -193,7 +129,7 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 
 sequelize
   .sync({ force: false })
@@ -202,3 +138,11 @@ sequelize
     server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch((err) => console.log("Error syncing database:", err));
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send("Something broke!");
+});
+
+module.exports = app;
