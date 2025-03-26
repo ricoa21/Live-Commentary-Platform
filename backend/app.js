@@ -87,11 +87,17 @@ app.get("/api/fixtures/:id", async (req, res) => {
   }
 });
 
-// New route for fetching fixtures between specific dates
 app.get("/api/fixtures/between", async (req, res) => {
   try {
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
+
+    if (!startDate || !endDate) {
+      return res
+        .status(400)
+        .json({ error: "Start and end dates are required" });
+    }
+
     const response = await axios.get(
       `${SPORTMONKS_BASE_URL}/fixtures/between/${startDate}/${endDate}`,
       {
@@ -105,10 +111,21 @@ app.get("/api/fixtures/between", async (req, res) => {
         },
       }
     );
+
+    if (response.status !== 200) {
+      return res.status(response.status).json({ error: response.statusText });
+    }
+
     res.json(response.data);
   } catch (error) {
     console.error("Error fetching fixtures:", error);
-    res.status(500).json({ error: "Failed to fetch fixtures" });
+    if (error.response) {
+      res
+        .status(error.response.status)
+        .json({ error: error.response.statusText });
+    } else {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   }
 });
 
