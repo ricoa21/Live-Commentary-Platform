@@ -116,14 +116,15 @@ app.get("/api/fixtures/between", async (req, res) => {
       return res.status(response.status).json({ error: response.statusText });
     }
 
-    // Ensure you're sending the fixtures directly under response.data
-    res.json(response.data.data); // If response.data.data is correct, otherwise adjust accordingly
+    res.json(response.data);
   } catch (error) {
     console.error("Error fetching fixtures:", error);
     if (error.response) {
       res
         .status(error.response.status)
         .json({ error: error.response.statusText });
+    } else if (error.code === "ECONNABORTED") {
+      res.status(408).json({ error: "Request timed out" });
     } else {
       res.status(500).json({ error: "Internal Server Error" });
     }
