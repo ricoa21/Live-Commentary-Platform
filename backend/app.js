@@ -123,6 +123,8 @@ app.get("/api/fixtures/between", async (req, res) => {
       res
         .status(error.response.status)
         .json({ error: error.response.statusText });
+    } else if (error.code === "ECONNABORTED") {
+      res.status(408).json({ error: "Request timed out" });
     } else {
       res.status(500).json({ error: "Internal Server Error" });
     }
