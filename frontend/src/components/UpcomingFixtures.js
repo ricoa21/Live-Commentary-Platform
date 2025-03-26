@@ -18,9 +18,11 @@ const UpcomingFixtures = () => {
             },
           }
         );
-        setFixtures(response.data.data);
+        // Assuming the fixtures are directly under response.data
+        setFixtures(response.data);
         setLoading(false);
       } catch (err) {
+        console.error('Error fetching fixtures:', err); // Log the error for debugging
         setError('Failed to load fixtures. Please try again later.');
         setLoading(false);
       }
