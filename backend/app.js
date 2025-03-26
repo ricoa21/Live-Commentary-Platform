@@ -34,7 +34,9 @@ const SPORTMONKS_API_KEY = process.env.REACT_APP_SPORTSMONK_API_KEY;
 
 app.get("/api/fixtures/scotland", async (req, res) => {
   try {
-    // First, get the current season ID
+    console.log("Fetching Scottish Premiership fixtures...");
+
+    // Step 1: Get the current season ID for the Scottish Premiership
     const leagueResponse = await axios.get(
       `${SPORTMONKS_BASE_URL}/leagues/501`,
       {
@@ -44,25 +46,79 @@ app.get("/api/fixtures/scotland", async (req, res) => {
         },
       }
     );
-    const currentSeasonId = leagueResponse.data.data.current_season_id;
 
-    // Then, fetch the fixtures using the current season ID
+    if (
+      !leagueResponse.data.data ||
+      !leagueResponse.data.data.current_season_id
+    ) {
+      throw new Error(
+        "Unable to retrieve current season ID for Scottish Premiership."
+      );
+    }
+
+    const currentSeasonId = leagueResponse.data.data.current_season_id;
+    console.log(
+      `Current Season ID for Scottish Premiership: ${currentSeasonId}`
+    );
+
+    // Step 2: Fetch fixtures for the current season
     const fixturesResponse = await axios.get(
       `${SPORTMONKS_BASE_URL}/fixtures`,
       {
         params: {
           api_token: SPORTMONKS_API_KEY,
-          league_id: 501,
+          league_id: 501, // Scottish Premiership League ID
           season_id: currentSeasonId,
           include: "participants",
+          filters: "status:NS", // Only fetch Not Started matches
+          sort: "starting_at", // Sort by start time
+          timezone: "Europe/London", // Use correct timezone
         },
       }
     );
 
-    res.json(fixturesResponse.data);
+    if (
+      !fixturesResponse.data.data ||
+      !Array.isArray(fixturesResponse.data.data)
+    ) {
+      throw new Error("Invalid fixtures data structure received.");
+    }
+
+    const validFixtures = fixturesResponse.data.data.filter(
+      (fixture) =>
+        fixture.participants?.length >= 2 &&
+        new Date(fixture.starting_at) > new Date()
+    );
+
+    console.log(
+      `Valid Scottish Premiership fixtures count: ${validFixtures.length}`
+    );
+
+    res.json({
+      data: validFixtures.map((fixture) => ({
+        id: fixture.id,
+        starting_at: fixture.starting_at,
+        participants: fixture.participants.map((p) => ({
+          id: p.id,
+          name: p.name,
+          logo: p.image_path,
+        })),
+        status: fixture.status,
+      })),
+    });
   } catch (error) {
-    console.error("Error fetching fixtures:", error);
-    res.status(500).json({ error: "Failed to fetch fixtures" });
+    console.error("Error fetching Scottish Premiership fixtures:", {
+      message: error.message,
+      responseData: error.response?.data,
+    });
+
+    res.status(500).json({
+      error: "Failed to fetch Scottish Premiership fixtures.",
+      details:
+        process.env.NODE_ENV === "development"
+          ? { message: error.message, responseData: error.response?.data }
+          : null,
+    });
   }
 });
 
@@ -114,10 +170,14 @@ sequelize
   })
   .catch((err) => console.log("Error syncing database:", err));
 
-// Error handling middleware
+// Enhanced error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send("Something broke!");
+  console.error("Global error handler:", err.stack);
+
+  res.status(500).json({
+    error: "Internal Server Error",
+    ...(process.env.NODE_ENV === "development" && { details: err.message }),
+  });
 });
 
 module.exports = app;
