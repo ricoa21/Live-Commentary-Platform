@@ -13,20 +13,6 @@ const Comment = require("./models/Comment");
 Comment.belongsTo(User);
 User.hasMany(Comment);
 
-// Test database connection
-async function testConnection() {
-  try {
-    await sequelize.authenticate();
-    console.log(
-      "Connection to PostgreSQL database has been established successfully."
-    );
-  } catch (error) {
-    console.error("Unable to connect to the database:", error);
-  }
-}
-
-testConnection();
-
 const app = express();
 
 // Enable CORS with specific options
@@ -48,116 +34,32 @@ const SPORTMONKS_API_KEY = process.env.REACT_APP_SPORTSMONK_API_KEY;
 
 app.get("/api/fixtures/scotland", async (req, res) => {
   try {
-    const response = await axios.get(`${SPORTMONKS_BASE_URL}/fixtures`, {
-      params: {
-        api_token: SPORTMONKS_API_KEY,
-        include: "participants",
-        league_id: 501, // Scottish Premiership ID
-      },
-      headers: {
-        Accept: "application/json",
-      },
-    });
-
-    if (response.status !== 200) {
-      throw new Error(
-        `SportMonks API responded with status ${response.status}`
-      );
-    }
-
-    res.json(response.data);
-  } catch (error) {
-    console.error("Error fetching fixtures:", error);
-    res
-      .status(500)
-      .json({ error: "Failed to fetch fixtures", details: error.message });
-  }
-});
-
-app.get("/api/fixtures/:id", async (req, res) => {
-  try {
-    const response = await axios.get(
-      `${SPORTMONKS_BASE_URL}/fixtures/${req.params.id}`,
+    // First, get the current season ID
+    const leagueResponse = await axios.get(
+      `${SPORTMONKS_BASE_URL}/leagues/501`,
       {
         params: {
           api_token: SPORTMONKS_API_KEY,
-          include: "participants,events,statistics",
-          ...req.query,
-        },
-        headers: {
-          Accept: "application/json",
+          include: "currentSeason",
         },
       }
     );
-    res.json(response.data);
-  } catch (error) {
-    console.error(`Error fetching fixture ${req.params.id}:`, error);
-    res.status(500).json({ error: "Failed to fetch fixture" });
-  }
-});
+    const currentSeasonId = leagueResponse.data.data.current_season_id;
 
-app.get("/api/fixtures/between", async (req, res) => {
-  try {
-    const startDate = req.query.startDate;
-    const endDate = req.query.endDate;
-
-    if (!startDate || !endDate) {
-      return res
-        .status(400)
-        .json({ error: "Start and end dates are required" });
-    }
-
-    const response = await axios.get(
-      `${SPORTMONKS_BASE_URL}/fixtures/between/${startDate}/${endDate}`,
+    // Then, fetch the fixtures using the current season ID
+    const fixturesResponse = await axios.get(
+      `${SPORTMONKS_BASE_URL}/fixtures`,
       {
         params: {
           api_token: SPORTMONKS_API_KEY,
+          league_id: 501,
+          season_id: currentSeasonId,
           include: "participants",
-          league_id: 501, // Scottish Premiership ID
-        },
-        headers: {
-          Accept: "application/json",
         },
       }
     );
 
-    if (response.status !== 200) {
-      return res.status(response.status).json({ error: response.statusText });
-    }
-
-    res.json(response.data);
-  } catch (error) {
-    console.error("Error fetching fixtures:", error);
-    if (error.response) {
-      res
-        .status(error.response.status)
-        .json({ error: error.response.statusText });
-    } else if (error.code === "ECONNABORTED") {
-      res.status(408).json({ error: "Request timed out" });
-    } else {
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  }
-});
-
-app.get("/api/fixtures/scotland", async (req, res) => {
-  try {
-    const response = await axios.get(`${SPORTMONKS_BASE_URL}/fixtures`, {
-      params: {
-        api_token: SPORTMONKS_API_KEY,
-        include: "participants",
-        league_id: 501, // Scottish Premiership ID
-      },
-      headers: {
-        Accept: "application/json",
-      },
-    });
-
-    if (response.status !== 200) {
-      return res.status(response.status).json({ error: response.statusText });
-    }
-
-    res.json(response.data);
+    res.json(fixturesResponse.data);
   } catch (error) {
     console.error("Error fetching fixtures:", error);
     res.status(500).json({ error: "Failed to fetch fixtures" });
