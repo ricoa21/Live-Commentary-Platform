@@ -14,7 +14,7 @@ const UpcomingFixtures = () => {
           {
             params: {
               startDate: '2025-04-02',
-              endDate: '2025-04-10',
+              endDate: '2025-04-02',
             },
           }
         );
