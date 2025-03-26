@@ -46,23 +46,31 @@ app.use("/api/auth", authRoutes);
 const SPORTMONKS_BASE_URL = "https://api.sportmonks.com/v3/football";
 const SPORTMONKS_API_KEY = process.env.REACT_APP_SPORTSMONK_API_KEY;
 
-app.get("/api/fixtures", async (req, res) => {
+app.get("/api/fixtures/scotland", async (req, res) => {
   try {
     const response = await axios.get(`${SPORTMONKS_BASE_URL}/fixtures`, {
       params: {
         api_token: SPORTMONKS_API_KEY,
         include: "participants",
         league_id: 501, // Scottish Premiership ID
-        ...req.query,
       },
       headers: {
         Accept: "application/json",
       },
     });
+
+    if (response.status !== 200) {
+      throw new Error(
+        `SportMonks API responded with status ${response.status}`
+      );
+    }
+
     res.json(response.data);
   } catch (error) {
     console.error("Error fetching fixtures:", error);
-    res.status(500).json({ error: "Failed to fetch fixtures" });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch fixtures", details: error.message });
   }
 });
 

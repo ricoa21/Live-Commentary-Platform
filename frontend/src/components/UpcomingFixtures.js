@@ -12,16 +12,16 @@ const ScotlandFixtures = () => {
         const response = await axios.get(
           'http://localhost:4000/api/fixtures/scotland'
         );
-
-        if (!response.data || !Array.isArray(response.data.data)) {
-          throw new Error('Invalid response data');
-        }
-
         setFixtures(response.data.data);
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching fixtures:', err);
-        setError(`Failed to load fixtures: ${err.message}`);
+        console.error(
+          'Error fetching fixtures:',
+          err.response ? err.response.data : err.message
+        );
+        setError(
+          `Failed to load fixtures: ${err.response ? err.response.data.error : err.message}`
+        );
         setLoading(false);
       }
     };
