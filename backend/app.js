@@ -34,9 +34,7 @@ const SPORTMONKS_API_KEY = process.env.REACT_APP_SPORTSMONK_API_KEY;
 
 app.get("/api/fixtures/scotland", async (req, res) => {
   try {
-    console.log("Starting Scottish fixtures fetch...");
-
-    // 1. Get league data with current season
+    // First, get the current season ID
     const leagueResponse = await axios.get(
       `${SPORTMONKS_BASE_URL}/leagues/501`,
       {
@@ -46,20 +44,9 @@ app.get("/api/fixtures/scotland", async (req, res) => {
         },
       }
     );
-
-    console.log(
-      "League API Response:",
-      JSON.stringify(leagueResponse.data, null, 2)
-    );
-
-    if (!leagueResponse.data.data) {
-      throw new Error("Invalid league data response");
-    }
-
     const currentSeasonId = leagueResponse.data.data.current_season_id;
-    console.log("Current Season ID:", currentSeasonId);
 
-    // 2. Get fixtures for current season
+    // Then, fetch the fixtures using the current season ID
     const fixturesResponse = await axios.get(
       `${SPORTMONKS_BASE_URL}/fixtures`,
       {
@@ -68,65 +55,14 @@ app.get("/api/fixtures/scotland", async (req, res) => {
           league_id: 501,
           season_id: currentSeasonId,
           include: "participants",
-          filters: "status:NS", // Only not-started matches
-          sort: "starting_at", // Sort by date
-          per_page: 20, // Limit results
-          timezone: "Europe/London", // Set correct timezone
         },
       }
     );
 
-    console.log(
-      "Fixtures API Response:",
-      JSON.stringify(fixturesResponse.data, null, 2)
-    );
-
-    // 3. Validate response structure
-    if (
-      !fixturesResponse.data.data ||
-      !Array.isArray(fixturesResponse.data.data)
-    ) {
-      throw new Error("Invalid fixtures data structure");
-    }
-
-    // 4. Filter and format fixtures
-    const validFixtures = fixturesResponse.data.data.filter(
-      (fixture) =>
-        fixture.participants?.length >= 2 &&
-        new Date(fixture.starting_at) > new Date()
-    );
-
-    console.log("Valid fixtures count:", validFixtures.length);
-
-    res.json({
-      data: validFixtures.map((fixture) => ({
-        id: fixture.id,
-        starting_at: fixture.starting_at,
-        participants: fixture.participants.map((p) => ({
-          id: p.id,
-          name: p.name,
-          logo: p.image_path,
-        })),
-        status: fixture.status,
-      })),
-    });
+    res.json(fixturesResponse.data);
   } catch (error) {
-    console.error("Error fetching fixtures:", {
-      message: error.message,
-      response: error.response?.data,
-      stack: error.stack,
-    });
-
-    res.status(500).json({
-      error: "Failed to fetch fixtures",
-      details:
-        process.env.NODE_ENV === "development"
-          ? {
-              message: error.message,
-              apiResponse: error.response?.data,
-            }
-          : null,
-    });
+    console.error("Error fetching fixtures:", error);
+    res.status(500).json({ error: "Failed to fetch fixtures" });
   }
 });
 
@@ -139,7 +75,6 @@ const io = new Server(server, {
   },
 });
 
-// Socket.io setup remains unchanged
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
 
@@ -179,21 +114,10 @@ sequelize
   })
   .catch((err) => console.log("Error syncing database:", err));
 
-// Enhanced error handling
+// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error("Global error handler:", {
-    message: err.message,
-    stack: err.stack,
-    originalUrl: req.originalUrl,
-  });
-
-  res.status(500).json({
-    error: "Internal Server Error",
-    ...(process.env.NODE_ENV === "development" && {
-      details: err.message,
-      stack: err.stack,
-    }),
-  });
+  console.error(err.stack);
+  res.status(500).send("Something broke!");
 });
 
 module.exports = app;
