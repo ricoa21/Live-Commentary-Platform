@@ -13,8 +13,8 @@ const UpcomingFixtures = () => {
           'http://localhost:4000/api/fixtures/between',
           {
             params: {
-              startDate: '2025-04-02',
-              endDate: '2025-04-03',
+              startDate: '2025-04-05',
+              endDate: '2025-04-06',
             },
           }
         );
