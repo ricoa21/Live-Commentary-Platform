@@ -36,7 +36,7 @@ app.get("/api/fixtures/scotland", async (req, res) => {
   try {
     console.log("Fetching Scottish Premiership fixtures...");
 
-    // Step 1: Get the current season ID for the Scottish Premiership
+    // Step 1: Get the current season ID
     const leagueResponse = await axios.get(
       `${SPORTMONKS_BASE_URL}/leagues/501`,
       {
@@ -47,52 +47,59 @@ app.get("/api/fixtures/scotland", async (req, res) => {
       }
     );
 
+    console.log(
+      "League API Response:",
+      JSON.stringify(leagueResponse.data, null, 2)
+    );
+
     if (
       !leagueResponse.data.data ||
       !leagueResponse.data.data.current_season_id
     ) {
-      throw new Error(
-        "Unable to retrieve current season ID for Scottish Premiership."
-      );
+      console.error("Invalid league response structure");
+      return res.status(500).json({ error: "Invalid league data from API" });
     }
 
     const currentSeasonId = leagueResponse.data.data.current_season_id;
-    console.log(
-      `Current Season ID for Scottish Premiership: ${currentSeasonId}`
-    );
+    console.log(`Current Season ID: ${currentSeasonId}`);
 
-    // Step 2: Fetch fixtures for the current season
+    // Step 2: Fetch fixtures
     const fixturesResponse = await axios.get(
       `${SPORTMONKS_BASE_URL}/fixtures`,
       {
         params: {
           api_token: SPORTMONKS_API_KEY,
-          league_id: 501, // Scottish Premiership League ID
+          league_id: 501,
           season_id: currentSeasonId,
           include: "participants",
-          filters: "status:NS", // Only fetch Not Started matches
-          sort: "starting_at", // Sort by start time
-          timezone: "Europe/London", // Use correct timezone
+          filters: "status:NS",
+          sort: "starting_at",
+          timezone: "Europe/London",
         },
       }
+    );
+
+    console.log(
+      "Fixtures API Response:",
+      JSON.stringify(fixturesResponse.data, null, 2)
     );
 
     if (
       !fixturesResponse.data.data ||
       !Array.isArray(fixturesResponse.data.data)
     ) {
-      throw new Error("Invalid fixtures data structure received.");
+      console.error("Invalid fixtures response structure");
+      return res.status(500).json({ error: "Invalid fixtures data from API" });
     }
 
+    // Filter valid fixtures
     const validFixtures = fixturesResponse.data.data.filter(
       (fixture) =>
         fixture.participants?.length >= 2 &&
         new Date(fixture.starting_at) > new Date()
     );
 
-    console.log(
-      `Valid Scottish Premiership fixtures count: ${validFixtures.length}`
-    );
+    console.log(`Found ${validFixtures.length} valid fixtures`);
 
     res.json({
       data: validFixtures.map((fixture) => ({
@@ -107,16 +114,20 @@ app.get("/api/fixtures/scotland", async (req, res) => {
       })),
     });
   } catch (error) {
-    console.error("Error fetching Scottish Premiership fixtures:", {
+    console.error("Full error details:", {
       message: error.message,
-      responseData: error.response?.data,
+      response: error.response?.data,
+      stack: error.stack,
     });
 
     res.status(500).json({
-      error: "Failed to fetch Scottish Premiership fixtures.",
+      error: "Failed to fetch fixtures",
       details:
         process.env.NODE_ENV === "development"
-          ? { message: error.message, responseData: error.response?.data }
+          ? {
+              message: error.message,
+              sportmonksError: error.response?.data,
+            }
           : null,
     });
   }

@@ -12,16 +12,22 @@ const ScotlandFixtures = () => {
         const response = await axios.get(
           'http://localhost:4000/api/fixtures/scotland'
         );
+
+        if (!response.data || !Array.isArray(response.data.data)) {
+          throw new Error('Invalid data structure from server');
+        }
+
         setFixtures(response.data.data);
         setLoading(false);
       } catch (err) {
-        console.error(
-          'Error fetching fixtures:',
-          err.response ? err.response.data : err.message
-        );
-        setError(
-          `Failed to load fixtures: ${err.response ? err.response.data.error : err.message}`
-        );
+        let errorMessage = 'Failed to load fixtures';
+        if (err.response) {
+          errorMessage = err.response.data.error || errorMessage;
+          if (err.response.data.details) {
+            console.error('API Error Details:', err.response.data.details);
+          }
+        }
+        setError(errorMessage);
         setLoading(false);
       }
     };
@@ -30,23 +36,27 @@ const ScotlandFixtures = () => {
   }, []);
 
   if (loading) return <p>Loading fixtures...</p>;
-  if (error) return <p>{error}</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
     <div className="upcoming-fixtures">
       <h2>Upcoming Scottish Premiership Fixtures</h2>
-      {fixtures.map((fixture) => (
-        <div key={fixture.id} className="fixture">
-          {fixture.participants && fixture.participants.length >= 2 && (
-            <>
-              <span>{fixture.participants[0].name}</span>
-              <span> vs </span>
-              <span>{fixture.participants[1].name}</span>
-              <span> - {new Date(fixture.starting_at).toLocaleString()}</span>
-            </>
-          )}
-        </div>
-      ))}
+      {fixtures.length === 0 ? (
+        <p>No upcoming fixtures found</p>
+      ) : (
+        fixtures.map((fixture) => (
+          <div key={fixture.id} className="fixture">
+            {fixture.participants && fixture.participants.length >= 2 && (
+              <>
+                <span>{fixture.participants[0].name}</span>
+                <span> vs </span>
+                <span>{fixture.participants[1].name}</span>
+                <span> - {new Date(fixture.starting_at).toLocaleString()}</span>
+              </>
+            )}
+          </div>
+        ))
+      )}
     </div>
   );
 };
