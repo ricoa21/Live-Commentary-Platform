@@ -155,44 +155,6 @@ app.get("/api/fixtures/scotland", async (req, res) => {
   }
 });
 
-app.get("/api/team/upcoming", async (req, res) => {
-  try {
-    const teamId = req.query.teamId;
-
-    if (!teamId) {
-      return res.status(400).json({ error: "Team ID is required" });
-    }
-
-    const response = await axios.get(`${SPORTMONKS_BASE_URL}/teams/${teamId}`, {
-      params: {
-        api_token: SPORTMONKS_API_KEY,
-        include:
-          "upcoming.participants;upcoming.scores;upcoming.state;upcoming.league",
-      },
-      headers: {
-        Accept: "application/json",
-      },
-    });
-
-    if (response.status !== 200) {
-      return res.status(response.status).json({ error: response.statusText });
-    }
-
-    res.json(response.data);
-  } catch (error) {
-    console.error("Error fetching team upcoming fixtures:", error);
-    if (error.response) {
-      res
-        .status(error.response.status)
-        .json({ error: error.response.statusText });
-    } else if (error.code === "ECONNABORTED") {
-      res.status(408).json({ error: "Request timed out" });
-    } else {
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  }
-});
-
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
