@@ -18,11 +18,16 @@ const UpcomingFixtures = () => {
             },
           }
         );
+
+        if (!response.data || !Array.isArray(response.data)) {
+          throw new Error('Invalid response data');
+        }
+
         setFixtures(response.data);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching fixtures:', err);
-        setError('Failed to load fixtures. Please try again later.');
+        setError(`Failed to load fixtures: ${err.message}`);
         setLoading(false);
       }
     };
@@ -38,10 +43,14 @@ const UpcomingFixtures = () => {
       <h2>Upcoming Premier League Fixtures</h2>
       {fixtures.map((fixture) => (
         <div key={fixture.id} className="fixture">
-          <span>{fixture.participants[0].name}</span>
-          <span> vs </span>
-          <span>{fixture.participants[1].name}</span>
-          <span> - {new Date(fixture.starting_at).toLocaleString()}</span>
+          {fixture.participants && fixture.participants.length > 1 && (
+            <>
+              <span>{fixture.participants[0].name}</span>
+              <span> vs </span>
+              <span>{fixture.participants[1].name}</span>
+              <span> - {new Date(fixture.starting_at).toLocaleString()}</span>
+            </>
+          )}
         </div>
       ))}
     </div>
