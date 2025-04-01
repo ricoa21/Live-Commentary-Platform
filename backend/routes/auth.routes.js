@@ -28,13 +28,13 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// Login Route
+// Login Route (Updated to use username)
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
 
   try {
-    // Find user by email
-    const user = await User.findOne({ where: { email } });
+    // Find user by username
+    const user = await User.findOne({ where: { username } });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }

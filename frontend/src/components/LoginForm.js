@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 const LoginForm = ({ setLoggedIn }) => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
 
@@ -11,7 +11,7 @@ const LoginForm = ({ setLoggedIn }) => {
     try {
       const response = await axios.post(
         'http://localhost:4000/api/auth/login',
-        { email, password }
+        { username, password }
       );
 
       localStorage.setItem('token', response.data.token);
@@ -27,11 +27,11 @@ const LoginForm = ({ setLoggedIn }) => {
       <h2>Login</h2>
       <form onSubmit={handleLogin}>
         <div className="form-group">
-          <label>Email:</label>
+          <label>Username:</label>
           <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
           />
         </div>
