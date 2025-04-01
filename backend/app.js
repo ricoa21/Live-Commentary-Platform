@@ -28,14 +28,11 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 
-// MongoDB Connection (New Addition)
+// MongoDB Connection (Updated for live-commentary-platform)
 const mongoDB =
-  "mongodb://Ricoa21:Stockholm%2528@127.0.0.1:27017/live_commentary";
+  "mongodb://Ricoa21:Stockholm%2528@127.0.0.1:27017/live-commentary-platform?authSource=admin";
 mongoose
-  .connect(mongoDB, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(mongoDB)
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
