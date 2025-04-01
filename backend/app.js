@@ -2,6 +2,7 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
+const mongoose = require("mongoose"); // Add Mongoose for MongoDB
 const sequelize = require("./config/database");
 const axios = require("axios");
 require("dotenv").config();
@@ -27,6 +28,18 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 
+// MongoDB Connection (New Addition)
+const mongoDB =
+  "mongodb://Ricoa21:Stockholm%2528@127.0.0.1:27017/live_commentary";
+mongoose
+  .connect(mongoDB, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("MongoDB connection error:", err));
+
+// Routes
 const authRoutes = require("./routes/auth.routes");
 app.use("/api/auth", authRoutes);
 
