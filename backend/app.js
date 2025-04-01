@@ -29,27 +29,26 @@ app.use(express.json());
 const authRoutes = require("./routes/auth.routes");
 app.use("/api/auth", authRoutes);
 
-const SPORTMONKS_BASE_URL = "https://api.sportmonks.com/v3/football";
+const SPORTMONKS_BASE_URL =
+  "https://api.sportmonks.com/v3/football/fixtures/upcoming/markets";
 const SPORTMONKS_API_KEY = process.env.REACT_APP_SPORTSMONK_API_KEY;
 
 app.get("/api/fixtures/scotland", async (req, res) => {
   try {
-    console.log("Fetching Scottish Premiership fixtures...");
+    console.log("Fetching upcoming Scottish Premiership fixtures...");
 
-    const currentSeasonId = 23690; // From your API response
+    const marketID = 501; // Scottish Premiership Market ID
 
+    // Fetch upcoming fixtures for Scottish Premiership
     const fixturesResponse = await axios.get(
-      `${SPORTMONKS_BASE_URL}/fixtures`,
+      `${SPORTMONKS_BASE_URL}/${marketID}`,
       {
         params: {
           api_token: SPORTMONKS_API_KEY,
-          league_id: 501,
-          season_id: currentSeasonId,
           include: "participants",
-          status: "NS,LIVE", // Include both not started and live matches
-          sort: "starting_at",
+          order: "starting_at",
+          per_page: 50,
           timezone: "Europe/London",
-          per_page: 50, // Increase the number of fixtures returned
         },
       }
     );
@@ -60,7 +59,6 @@ app.get("/api/fixtures/scotland", async (req, res) => {
       JSON.stringify(fixturesResponse.data.data[0], null, 2)
     );
 
-    // Remove the date filter to see all fixtures
     const validFixtures = fixturesResponse.data.data.filter(
       (fixture) => fixture.participants?.length >= 2
     );
@@ -83,18 +81,15 @@ app.get("/api/fixtures/scotland", async (req, res) => {
   } catch (error) {
     console.error("Full error details:", {
       message: error.message,
-      response: error.response?.data,
+      responseData: error.response?.data,
       stack: error.stack,
     });
 
     res.status(500).json({
-      error: "Failed to fetch fixtures",
+      error: "Failed to fetch Scottish Premiership fixtures.",
       details:
         process.env.NODE_ENV === "development"
-          ? {
-              message: error.message,
-              sportmonksError: error.response?.data,
-            }
+          ? { message: error.message, responseData: error.response?.data }
           : null,
     });
   }
