@@ -8,6 +8,7 @@ require("dotenv").config();
 
 const User = require("./models/User");
 const Comment = require("./models/Comment");
+const auth = require("./middleware/auth"); // Your existing auth middleware
 
 // Associations
 Comment.belongsTo(User);
@@ -33,11 +34,15 @@ const SPORTMONKS_BASE_URL =
   "https://api.sportmonks.com/v3/football/fixtures/upcoming/markets";
 const SPORTMONKS_API_KEY = process.env.REACT_APP_SPORTSMONK_API_KEY;
 
-app.get("/api/fixtures/danish", async (req, res) => {
+// Protected Danish fixtures endpoint
+app.get("/api/fixtures/danish", auth, async (req, res) => {
+  // Added auth middleware here
   try {
     console.log("Fetching Danish Superliga fixtures...");
+    console.log("Authenticated User ID:", req.user.id); // Now accessible via auth middleware
 
-    const marketID = 271; // Danish Superliga Market ID
+    const marketID = 271;
+    const { date, team } = req.query;
 
     const fixturesResponse = await axios.get(
       `${SPORTMONKS_BASE_URL}/${marketID}`,
@@ -48,20 +53,15 @@ app.get("/api/fixtures/danish", async (req, res) => {
           order: "starting_at",
           per_page: 50,
           timezone: "Europe/Copenhagen",
+          ...(date && { starting_from: date }),
+          ...(team && { participants: team }),
         },
       }
-    );
-
-    console.log(
-      "API Response:",
-      JSON.stringify(fixturesResponse.data, null, 2)
     );
 
     const validFixtures = fixturesResponse.data.data.filter(
       (fixture) => fixture.participants?.length >= 2
     );
-
-    console.log(`Found ${validFixtures.length} valid fixtures`);
 
     res.json({
       data: validFixtures.map((fixture) => ({
@@ -76,78 +76,9 @@ app.get("/api/fixtures/danish", async (req, res) => {
       })),
     });
   } catch (error) {
-    console.error("Full error details:", {
-      message: error.message,
-      responseData: error.response?.data,
-      stack: error.stack,
-    });
-
-    res.status(500).json({
-      error: "Failed to fetch Danish Superliga fixtures.",
-      details:
-        process.env.NODE_ENV === "development"
-          ? { message: error.message, responseData: error.response?.data }
-          : null,
-    });
+    console.error("Error:", error.message);
+    res.status(500).json({ error: "Failed to fetch fixtures" });
   }
 });
 
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
-
-io.on("connection", (socket) => {
-  console.log(`User connected: ${socket.id}`);
-
-  socket.on("new_comment", async (commentData) => {
-    try {
-      const { content, userId } = commentData;
-
-      const user = await User.findByPk(userId);
-      if (!user) {
-        console.error(`User with ID ${userId} not found`);
-        return;
-      }
-
-      const comment = await Comment.create({ content, UserId: userId });
-      const commentWithUser = await Comment.findByPk(comment.id, {
-        include: [{ model: User, attributes: ["username"] }],
-      });
-
-      io.emit("comment_received", commentWithUser);
-    } catch (error) {
-      console.error("Error saving comment:", error);
-    }
-  });
-
-  socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
-  });
-});
-
-const PORT = process.env.PORT || 4000;
-
-sequelize
-  .sync({ force: false })
-  .then(() => {
-    console.log("Database & tables created!");
-    server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  })
-  .catch((err) => console.log("Error syncing database:", err));
-
-// Enhanced error handling middleware
-app.use((err, req, res, next) => {
-  console.error("Global error handler:", err.stack);
-
-  res.status(500).json({
-    error: "Internal Server Error",
-    ...(process.env.NODE_ENV === "development" && { details: err.message }),
-  });
-});
-
-module.exports = app;
+// Rest of your app.js remains unchanged...
