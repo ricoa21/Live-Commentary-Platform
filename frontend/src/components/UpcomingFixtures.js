@@ -9,6 +9,7 @@ const DanishFixtures = () => {
   useEffect(() => {
     const fetchFixtures = async () => {
       try {
+        // Fetch data from the backend API
         const response = await axios.get(
           'http://localhost:4000/api/fixtures/danish'
         );
@@ -21,7 +22,11 @@ const DanishFixtures = () => {
         setLoading(false);
       } catch (err) {
         console.error('Error fetching fixtures:', err);
-        setError(`Failed to load fixtures: ${err.message}`);
+        setError(
+          err.response?.data?.error ||
+            err.message ||
+            'An unknown error occurred'
+        );
         setLoading(false);
       }
     };
@@ -30,23 +35,27 @@ const DanishFixtures = () => {
   }, []);
 
   if (loading) return <p>Loading fixtures...</p>;
-  if (error) return <p>{error}</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
     <div className="upcoming-fixtures">
       <h2>Upcoming Danish Superliga Fixtures</h2>
-      {fixtures.map((fixture) => (
-        <div key={fixture.id} className="fixture">
-          {fixture.participants && fixture.participants.length >= 2 && (
-            <>
-              <span>{fixture.participants[0].name}</span>
-              <span> vs </span>
-              <span>{fixture.participants[1].name}</span>
-              <span> - {new Date(fixture.starting_at).toLocaleString()}</span>
-            </>
-          )}
-        </div>
-      ))}
+      {fixtures.length === 0 ? (
+        <p>No upcoming fixtures found</p>
+      ) : (
+        fixtures.map((fixture) => (
+          <div key={fixture.id} className="fixture">
+            {fixture.participants && fixture.participants.length >= 2 && (
+              <>
+                <span>{fixture.participants[0].name}</span>
+                <span> vs </span>
+                <span>{fixture.participants[1].name}</span>
+                <span> - {new Date(fixture.starting_at).toLocaleString()}</span>
+              </>
+            )}
+          </div>
+        ))
+      )}
     </div>
   );
 };
