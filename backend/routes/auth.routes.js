@@ -1,86 +1,60 @@
 const express = require("express");
-const router = express.Router();
-const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const auth = require("../middleware/auth");
+const User = require("../models/User");
 
-// Registration route
+const router = express.Router();
+
+// Register Route
 router.post("/register", async (req, res) => {
-  try {
-    const { username, password } = req.body;
+  const { username, email, password } = req.body;
 
-    console.log("Received registration data:", {
+  try {
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create new user
+    const newUser = await User.create({
       username,
-      password: "******",
+      email,
+      password: hashedPassword,
     });
 
-    if (!username || !password) {
-      console.log("Validation error: Missing username or password");
-      return res
-        .status(400)
-        .json({ message: "Username and password are required" });
-    }
-
-    const existingUser = await User.findOne({ where: { username } });
-    if (existingUser) {
-      console.log(`User already exists: ${username}`);
-      return res.status(400).json({ message: "Username already exists" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ username, password: hashedPassword });
-
-    console.log(`User registered successfully: ${username}`);
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({ message: "User registered successfully!" });
   } catch (error) {
-    console.error("Registration error:", error);
-    res
-      .status(500)
-      .json({ message: "Error registering user", error: error.message });
+    console.error(error.message);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-// Login route
+// Login Route
 router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const { username, password } = req.body;
-    const user = await User.findOne({ where: { username } });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(400).json({ message: "Invalid credentials" });
+    // Find user by email
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
-    const token = jwt.sign({ id: user.id }, "your_jwt_secret", {
+
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Invalid credentials" });
+    }
+
+    // Generate JWT token
+    const payload = { id: user.id };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
-    res.json({
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-      },
-    });
+
+    res.json({ token });
   } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// Updated protected route for posting comments
-router.post("/comments", auth, async (req, res) => {
-  try {
-    const { content } = req.body;
-    if (!content) {
-      return res.status(400).json({ message: "Comment content is required" });
-    }
-
-    console.log("New comment received:", content);
-
-    // Here you would typically save the comment to your database
-    // For now, we'll just send a success response
-    res.status(201).json({ message: "Comment posted successfully" });
-  } catch (error) {
-    console.error("Error posting comment:", error);
-    res.status(500).json({ message: "Error posting comment" });
+    console.error(error.message);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
