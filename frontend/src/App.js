@@ -1,39 +1,72 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Login from './Login';
-import Home from './Home';
-import DanishFixtures from './DanishFixtures';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import LiveMatch from './pages/LiveMatch';
+import DanishFixtures from './components/UpcomingFixtures';
 
 const App = () => {
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem('token'));
 
   return (
     <Router>
-      <div>
-        {!loggedIn ? (
-          <Routes>
-            <Route path="/" element={<Login setLoggedIn={setLoggedIn} />} />
-          </Routes>
-        ) : (
-          <>
-            <nav>
-              <a href="/">Home</a> | <a href="/fixtures">Fixtures</a> |{' '}
-              <button
-                onClick={() => {
-                  localStorage.removeItem('token');
-                  setLoggedIn(false);
-                }}
-              >
-                Logout
-              </button>
-            </nav>
+      <div className="app-container">
+        <Header />
 
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/fixtures" element={<DanishFixtures />} />
-            </Routes>
-          </>
-        )}
+        <main>
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                !loggedIn ? (
+                  <Login setLoggedIn={setLoggedIn} />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+
+            <Route
+              path="/register"
+              element={
+                !loggedIn ? (
+                  <Register setLoggedIn={setLoggedIn} />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+
+            <Route
+              path="/"
+              element={loggedIn ? <Home /> : <Navigate to="/login" replace />}
+            />
+
+            <Route
+              path="/fixtures"
+              element={
+                loggedIn ? <DanishFixtures /> : <Navigate to="/login" replace />
+              }
+            />
+
+            <Route
+              path="/match/:id"
+              element={
+                loggedIn ? <LiveMatch /> : <Navigate to="/login" replace />
+              }
+            />
+          </Routes>
+        </main>
+
+        <Footer />
       </div>
     </Router>
   );

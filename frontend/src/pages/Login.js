@@ -1,12 +1,13 @@
 import React from 'react';
+import LoginForm from '../components/LoginForm'; // Use your existing LoginForm component
 
-function Login() {
+const Login = () => {
   return (
-    <div>
-      <h1>Login Page</h1>
-      <p>Please log in to continue.</p>
+    <div className="login-page">
+      <h1>Login</h1>
+      <LoginForm />
     </div>
   );
-}
+};
 
 export default Login;

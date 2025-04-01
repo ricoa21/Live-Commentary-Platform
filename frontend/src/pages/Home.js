@@ -1,12 +1,13 @@
 import React from 'react';
+import FixtureList from '../components/FixtureList'; // Use your existing FixtureList component
 
-function Home() {
+const Home = () => {
   return (
-    <div>
-      <h1>Home Page</h1>
-      <p>Welcome to the home page!</p>
+    <div className="home-page">
+      <h1>Welcome to Live Commentary Platform</h1>
+      <FixtureList />
     </div>
   );
-}
+};
 
 export default Home;
