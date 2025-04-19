@@ -6,17 +6,23 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
-const sequelize = require("./config/database");
 const axios = require("axios");
+const path = require("path");
 
-// Import models and middleware
-const User = require("./models/User");
-const Comment = require("./models/Comment");
-const auth = require("./middleware/auth");
+// Sequelize setup
+const sequelize = require("./config/database");
+
+// Import models
+const UserModel = require("./models/User");
+const CommentModel = require("./models/Comment");
+
+// Initialize models with sequelize instance
+const User = UserModel(sequelize);
+const Comment = CommentModel(sequelize);
 
 // Set up associations
-Comment.belongsTo(User);
-User.hasMany(Comment);
+User.hasMany(Comment, { foreignKey: "userId" });
+Comment.belongsTo(User, { foreignKey: "userId" });
 
 const app = express();
 
@@ -37,11 +43,14 @@ app.use("/api/auth", authRoutes);
 // SportMonks API setup
 const SPORTMONKS_BASE_URL =
   "https://api.sportmonks.com/v3/football/fixtures/upcoming/markets";
-const SPORTMONKS_API_KEY = process.env.REACT_APP_SPORTSMONK_API_KEY;
+const SPORTMONKS_API_KEY = process.env.SPORTMONKS_API_KEY;
 
 // PUBLIC endpoint for Danish Superliga fixtures (no auth middleware)
 app.get("/api/fixtures/danish", async (req, res) => {
   try {
+    if (!SPORTMONKS_API_KEY) {
+      return res.status(500).json({ error: "SportMonks API key not set" });
+    }
     const marketID = 271; // Danish Superliga Market ID
     const { date, team } = req.query; // Optional filters
 
@@ -57,11 +66,18 @@ app.get("/api/fixtures/danish", async (req, res) => {
           ...(date && { starting_from: date }),
           ...(team && { participants: team }),
         },
+        validateStatus: (status) => status < 500, // Handle 4xx errors
       }
     );
 
-    // Filter out fixtures with less than 2 participants
-    const validFixtures = fixturesResponse.data.data.filter(
+    if (fixturesResponse.status !== 200) {
+      return res.status(fixturesResponse.status).json({
+        error: "Failed to fetch fixtures",
+        details: fixturesResponse.data,
+      });
+    }
+
+    const validFixtures = (fixturesResponse.data.data || []).filter(
       (fixture) => fixture.participants?.length >= 2
     );
 
@@ -78,10 +94,13 @@ app.get("/api/fixtures/danish", async (req, res) => {
       })),
     });
   } catch (error) {
-    console.error("Error fetching fixtures:", error.message);
+    console.error(
+      "Error fetching fixtures:",
+      error.response?.data || error.message
+    );
     res.status(500).json({
       error: "Failed to fetch fixtures",
-      details: error.response?.data?.message || "Check server logs",
+      details: error.response?.data || error.message,
     });
   }
 });
