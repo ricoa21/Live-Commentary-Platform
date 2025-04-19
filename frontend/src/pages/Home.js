@@ -1,5 +1,5 @@
 import React from 'react';
-import UpcomingFixtures from './UpcomingFixtures';
+import UpcomingFixtures from '../components/UpcomingFixtures';
 
 const Home = () => {
   return (
