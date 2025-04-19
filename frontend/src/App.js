@@ -7,7 +7,7 @@ import {
 } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import Home from './pages/Home';
+import Home from './pages/Home'; // You can remove this if not needed
 import Login from './pages/Login';
 import Register from './pages/Register';
 import LiveMatch from './pages/LiveMatch';
@@ -45,18 +45,13 @@ const App = () => {
               }
             />
 
-            <Route
-              path="/"
-              element={loggedIn ? <Home /> : <Navigate to="/login" replace />}
-            />
+            {/* Show fixtures on homepage for everyone */}
+            <Route path="/" element={<DanishFixtures />} />
 
-            <Route
-              path="/fixtures"
-              element={
-                loggedIn ? <DanishFixtures /> : <Navigate to="/login" replace />
-              }
-            />
+            {/* Optionally, keep this for direct /fixtures route */}
+            <Route path="/fixtures" element={<DanishFixtures />} />
 
+            {/* Only logged-in users can access live match */}
             <Route
               path="/match/:id"
               element={
