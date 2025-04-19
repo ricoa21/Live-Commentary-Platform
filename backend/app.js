@@ -39,8 +39,8 @@ const SPORTMONKS_BASE_URL =
   "https://api.sportmonks.com/v3/football/fixtures/upcoming/markets";
 const SPORTMONKS_API_KEY = process.env.REACT_APP_SPORTSMONK_API_KEY;
 
-// Protected endpoint for Danish Superliga fixtures
-app.get("/api/fixtures/danish", auth, async (req, res) => {
+// PUBLIC endpoint for Danish Superliga fixtures (no auth middleware)
+app.get("/api/fixtures/danish", async (req, res) => {
   try {
     const marketID = 271; // Danish Superliga Market ID
     const { date, team } = req.query; // Optional filters
