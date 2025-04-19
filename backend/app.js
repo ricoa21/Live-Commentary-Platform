@@ -1,5 +1,3 @@
-// app.js
-
 require("dotenv").config();
 
 const express = require("express");
@@ -7,18 +5,13 @@ const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const axios = require("axios");
-const path = require("path");
 
 // Sequelize setup
 const sequelize = require("./config/database");
 
-// Import models
-const UserModel = require("./models/User");
-const CommentModel = require("./models/Comment");
-
-// Initialize models with sequelize instance
-const User = UserModel(sequelize);
-const Comment = CommentModel(sequelize);
+// Import and initialize models
+const User = require("./models/User")(sequelize);
+const Comment = require("./models/Comment")(sequelize);
 
 // Set up associations
 User.hasMany(Comment, { foreignKey: "userId" });
