@@ -1,61 +1,18 @@
-const express = require("express");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-
-const router = express.Router();
-
-// Register Route
+// routes/auth.routes.js
 router.post("/register", async (req, res) => {
-  const { username, email, password } = req.body;
-
   try {
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create new user
-    const newUser = await User.create({
-      username,
-      email,
-      password: hashedPassword,
-    });
-
-    res.status(201).json({ message: "User registered successfully!" });
+    const { username, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({ username, password: hashedPassword });
+    res.status(201).json({ id: user.id, username: user.username });
   } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ error: "Server error" });
+    console.error("Registration error:", error);
+    const errors = error.errors?.map((e) => ({
+      field: e.path,
+      message: e.message,
+    }));
+    res
+      .status(400)
+      .json({ error: "Validation failed", details: errors || error.message });
   }
 });
-
-// Login Route (Updated to use username)
-router.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-
-  try {
-    // Find user by username
-    const user = await User.findOne({ where: { username } });
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    // Compare passwords
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ error: "Invalid credentials" });
-    }
-
-    // Generate JWT token
-    const payload = { id: user.id };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-
-    res.json({ token });
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-module.exports = router;
