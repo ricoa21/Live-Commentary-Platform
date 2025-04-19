@@ -1,55 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import io from 'socket.io-client';
-import ErrorBoundary from '../ErrorBoundary';
+import React, { useState } from 'react';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import LiveMatch from './pages/LiveMatch';
+import DanishFixtures from './components/UpcomingFixtures';
 
-function CommentFeed() {
-  const [comments, setComments] = useState([]);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const socket = io('http://localhost:4000'); // Replace with your server URL
-
-    socket.on('connect', () => {
-      console.log('Connected to server');
-    });
-
-    socket.on('comment_received', (comment) => {
-      setComments((prevComments) => [...prevComments, comment]);
-    });
-
-    socket.on('connect_error', (err) => {
-      console.error('Connection error:', err);
-      setError('Failed to connect to the server. Please try again later.');
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
-
-  if (error) {
-    return <div className="error-message">{error}</div>;
-  }
+const App = () => {
+  const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem('token'));
 
   return (
-    <div className="comment-feed">
-      <h2>Live Commentary</h2>
-      {comments.length === 0 ? (
-        <p>No comments yet. Be the first to comment!</p>
-      ) : (
-        comments.map((comment) => (
-          <ErrorBoundary key={comment.id}>
-            <div className="comment">
-              <strong>{comment.User.username}:</strong> {comment.content}
-              <span className="timestamp">
-                {new Date(comment.createdAt).toLocaleTimeString()}
-              </span>
-            </div>
-          </ErrorBoundary>
-        ))
-      )}
-    </div>
-  );
-}
+    <Router>
+      <div className="app-container">
+        <Header />
 
-export default CommentFeed;
+        <main>
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                !loggedIn ? (
+                  <Login setLoggedIn={setLoggedIn} />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+
+            <Route
+              path="/register"
+              element={
+                !loggedIn ? (
+                  <Register setLoggedIn={setLoggedIn} />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+
+            {/* Home/fixtures page is always visible */}
+            <Route path="/" element={<Home />} />
+
+            {/* Optionally, /fixtures can also show the fixture list */}
+            <Route path="/fixtures" element={<DanishFixtures />} />
+
+            {/* Only logged-in users can access live match */}
+            <Route
+              path="/match/:id"
+              element={
+                loggedIn ? <LiveMatch /> : <Navigate to="/login" replace />
+              }
+            />
+          </Routes>
+        </main>
+
+        <Footer />
+      </div>
+    </Router>
+  );
+};
+
+export default App;
