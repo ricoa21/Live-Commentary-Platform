@@ -7,6 +7,7 @@ import {
 } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import LiveMatch from './pages/LiveMatch';
@@ -44,8 +45,8 @@ const App = () => {
               }
             />
 
-            {/* Show fixtures on homepage for everyone */}
-            <Route path="/" element={<DanishFixtures />} />
+            {/* Home/fixtures page is always visible */}
+            <Route path="/" element={<Home />} />
 
             {/* Optionally, keep this for direct /fixtures route */}
             <Route path="/fixtures" element={<DanishFixtures />} />
