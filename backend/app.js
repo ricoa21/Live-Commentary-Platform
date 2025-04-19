@@ -6,20 +6,15 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const axios = require("axios");
 
-// Sequelize setup
 const sequelize = require("./config/database");
-
-// Import and initialize models
 const User = require("./models/User")(sequelize);
 const Comment = require("./models/Comment")(sequelize);
 
-// Set up associations
 User.hasMany(Comment, { foreignKey: "userId" });
 Comment.belongsTo(User, { foreignKey: "userId" });
 
 const app = express();
 
-// CORS configuration
 const corsOptions = {
   origin: process.env.FRONTEND_URL || "http://localhost:3000",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -29,7 +24,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Import and use authentication routes
+// Auth routes
 const authRoutes = require("./routes/auth.routes");
 app.use("/api/auth", authRoutes);
 
@@ -38,14 +33,14 @@ const SPORTMONKS_BASE_URL =
   "https://api.sportmonks.com/v3/football/fixtures/upcoming/markets";
 const SPORTMONKS_API_KEY = process.env.SPORTMONKS_API_KEY;
 
-// PUBLIC endpoint for Danish Superliga fixtures (no auth middleware)
+// PUBLIC endpoint for Danish Superliga fixtures
 app.get("/api/fixtures/danish", async (req, res) => {
   try {
     if (!SPORTMONKS_API_KEY) {
       return res.status(500).json({ error: "SportMonks API key not set" });
     }
-    const marketID = 271; // Danish Superliga Market ID
-    const { date, team } = req.query; // Optional filters
+    const marketID = 271;
+    const { date, team } = req.query;
 
     const fixturesResponse = await axios.get(
       `${SPORTMONKS_BASE_URL}/${marketID}`,
@@ -59,7 +54,7 @@ app.get("/api/fixtures/danish", async (req, res) => {
           ...(date && { starting_from: date }),
           ...(team && { participants: team }),
         },
-        validateStatus: (status) => status < 500, // Handle 4xx errors
+        validateStatus: (status) => status < 500,
       }
     );
 
@@ -98,7 +93,6 @@ app.get("/api/fixtures/danish", async (req, res) => {
   }
 });
 
-// Set up HTTP server and Socket.IO for real-time updates
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -114,7 +108,6 @@ io.on("connection", (socket) => {
   socket.on("request_fixture_updates", (fixtureId) => {
     console.log(`Client requested updates for fixture ID ${fixtureId}`);
 
-    // Set up interval for sending updates every 30 seconds
     const interval = setInterval(async () => {
       try {
         const updatedFixtureResponse = await axios.get(
@@ -136,9 +129,8 @@ io.on("connection", (socket) => {
           error.message
         );
       }
-    }, 30000); // 30 seconds
+    }, 30000);
 
-    // Clean up interval when user disconnects
     socket.on("disconnect", () => {
       clearInterval(interval);
       console.log(`User disconnected: ${socket.id}`);
@@ -146,7 +138,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start server after syncing database
 const PORT = process.env.PORT || 4000;
 
 sequelize
@@ -157,7 +148,6 @@ sequelize
   })
   .catch((err) => console.log("Error syncing database:", err));
 
-// Global error handler
 app.use((err, req, res, next) => {
   console.error("Global error handler:", err.stack);
   res.status(500).json({

@@ -3,7 +3,7 @@
 const express = require("express");
 const router = express.Router(); // <-- THIS LINE WAS MISSING
 const bcrypt = require("bcryptjs");
-const { User } = require("../models"); // Adjust path as needed
+const { User } = require("../models/User")(sequelize); // Pass your sequelize instance
 
 // Register route
 router.post("/register", async (req, res) => {
