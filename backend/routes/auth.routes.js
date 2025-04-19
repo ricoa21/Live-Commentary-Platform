@@ -2,7 +2,7 @@
 
 const express = require("express");
 const router = express.Router(); // <-- THIS LINE WAS MISSING
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const { User } = require("../models"); // Adjust path as needed
 
 // Register route
