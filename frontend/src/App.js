@@ -7,7 +7,6 @@ import {
 } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import Home from './pages/Home'; // You can remove this if not needed
 import Login from './pages/Login';
 import Register from './pages/Register';
 import LiveMatch from './pages/LiveMatch';
