@@ -1,0 +1,13 @@
+2025-04-11 19:52:43.102 BST [7438] LOG:  starting PostgreSQL 15.12 (Homebrew) on x86_64-apple-darwin23.6.0, compiled by Apple clang version 16.0.0 (clang-1600.0.26.6), 64-bit
+2025-04-11 19:52:43.104 BST [7438] LOG:  listening on IPv6 address "::1", port 5432
+2025-04-11 19:52:43.104 BST [7438] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2025-04-11 19:52:43.106 BST [7438] LOG:  listening on Unix socket "/tmp/.s.PGSQL.5432"
+2025-04-11 19:52:43.113 BST [7441] LOG:  database system was shut down at 2025-04-11 19:50:42 BST
+2025-04-11 19:52:43.117 BST [7438] LOG:  database system is ready to accept connections
+2025-04-11 19:57:43.097 BST [7439] LOG:  checkpoint starting: time
+2025-04-11 19:57:43.109 BST [7439] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.003 s, sync=0.001 s, total=0.012 s; sync files=2, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=0 kB
+2025-04-11 20:05:44.247 BST [7438] LOG:  could not open file "postmaster.pid": No such file or directory
+2025-04-11 20:05:44.248 BST [7438] LOG:  performing immediate shutdown because data directory lock file is invalid
+2025-04-11 20:05:44.248 BST [7438] LOG:  received immediate shutdown request
+2025-04-11 20:05:44.248 BST [7438] LOG:  could not open file "postmaster.pid": No such file or directory
+2025-04-11 20:05:44.252 BST [7438] LOG:  database system is shut down

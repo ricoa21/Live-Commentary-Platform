@@ -1,23 +1,26 @@
+// app.js
+
+require("dotenv").config();
+
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
-const mongoose = require("mongoose"); // Add Mongoose for MongoDB
 const sequelize = require("./config/database");
 const axios = require("axios");
-require("dotenv").config();
 
+// Import models and middleware
 const User = require("./models/User");
 const Comment = require("./models/Comment");
-const auth = require("./middleware/auth"); // Authentication middleware
+const auth = require("./middleware/auth");
 
-// Associations
+// Set up associations
 Comment.belongsTo(User);
 User.hasMany(Comment);
 
 const app = express();
 
-// Enable CORS with specific options
+// CORS configuration
 const corsOptions = {
   origin: process.env.FRONTEND_URL || "http://localhost:3000",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -25,33 +28,22 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 };
 app.use(cors(corsOptions));
-
 app.use(express.json());
 
-// MongoDB Connection (Updated for live-commentary-platform)
-const mongoDB =
-  "mongodb://Ricoa21:Stockholm%2528@127.0.0.1:27017/live-commentary-platform?authSource=admin";
-mongoose
-  .connect(mongoDB)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("MongoDB connection error:", err));
-
-// Routes
+// Import and use authentication routes
 const authRoutes = require("./routes/auth.routes");
 app.use("/api/auth", authRoutes);
 
+// SportMonks API setup
 const SPORTMONKS_BASE_URL =
   "https://api.sportmonks.com/v3/football/fixtures/upcoming/markets";
 const SPORTMONKS_API_KEY = process.env.REACT_APP_SPORTSMONK_API_KEY;
 
-// Protected Danish fixtures endpoint
+// Protected endpoint for Danish Superliga fixtures
 app.get("/api/fixtures/danish", auth, async (req, res) => {
   try {
-    console.log("Fetching Danish Superliga fixtures...");
-    console.log("Authenticated User ID:", req.user.id); // Access authenticated user ID
-
     const marketID = 271; // Danish Superliga Market ID
-    const { date, team } = req.query; // Filters for date and team
+    const { date, team } = req.query; // Optional filters
 
     const fixturesResponse = await axios.get(
       `${SPORTMONKS_BASE_URL}/${marketID}`,
@@ -62,12 +54,13 @@ app.get("/api/fixtures/danish", auth, async (req, res) => {
           order: "starting_at",
           per_page: 50,
           timezone: "Europe/Copenhagen",
-          ...(date && { starting_from: date }), // Add date filter if provided
-          ...(team && { participants: team }), // Add team filter if provided
+          ...(date && { starting_from: date }),
+          ...(team && { participants: team }),
         },
       }
     );
 
+    // Filter out fixtures with less than 2 participants
     const validFixtures = fixturesResponse.data.data.filter(
       (fixture) => fixture.participants?.length >= 2
     );
@@ -85,12 +78,15 @@ app.get("/api/fixtures/danish", auth, async (req, res) => {
       })),
     });
   } catch (error) {
-    console.error("Error:", error.message);
-    res.status(500).json({ error: "Failed to fetch fixtures" });
+    console.error("Error fetching fixtures:", error.message);
+    res.status(500).json({
+      error: "Failed to fetch fixtures",
+      details: error.response?.data?.message || "Check server logs",
+    });
   }
 });
 
-// Socket.IO setup for real-time updates
+// Set up HTTP server and Socket.IO for real-time updates
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -106,7 +102,8 @@ io.on("connection", (socket) => {
   socket.on("request_fixture_updates", (fixtureId) => {
     console.log(`Client requested updates for fixture ID ${fixtureId}`);
 
-    setInterval(async () => {
+    // Set up interval for sending updates every 30 seconds
+    const interval = setInterval(async () => {
       try {
         const updatedFixtureResponse = await axios.get(
           `${SPORTMONKS_BASE_URL}/latest`,
@@ -114,7 +111,7 @@ io.on("connection", (socket) => {
             params: {
               api_token: SPORTMONKS_API_KEY,
               include: "participants",
-              id: fixtureId, // Get updates for a specific fixture ID
+              id: fixtureId,
             },
           }
         );
@@ -127,14 +124,17 @@ io.on("connection", (socket) => {
           error.message
         );
       }
-    }, 30000); // Fetch updates every 30 seconds
-  });
+    }, 30000); // 30 seconds
 
-  socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
+    // Clean up interval when user disconnects
+    socket.on("disconnect", () => {
+      clearInterval(interval);
+      console.log(`User disconnected: ${socket.id}`);
+    });
   });
 });
 
+// Start server after syncing database
 const PORT = process.env.PORT || 4000;
 
 sequelize
@@ -145,10 +145,9 @@ sequelize
   })
   .catch((err) => console.log("Error syncing database:", err));
 
-// Enhanced error handling middleware
+// Global error handler
 app.use((err, req, res, next) => {
   console.error("Global error handler:", err.stack);
-
   res.status(500).json({
     error: "Internal Server Error",
     ...(process.env.NODE_ENV === "development" && { details: err.message }),
