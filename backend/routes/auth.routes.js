@@ -1,4 +1,11 @@
-// routes/auth.routes.js
+// backend/routes/auth.routes.js
+
+const express = require("express");
+const router = express.Router(); // <-- THIS LINE WAS MISSING
+const bcrypt = require("bcrypt");
+const { User } = require("../models"); // Adjust path as needed
+
+// Register route
 router.post("/register", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -7,12 +14,13 @@ router.post("/register", async (req, res) => {
     res.status(201).json({ id: user.id, username: user.username });
   } catch (error) {
     console.error("Registration error:", error);
-    const errors = error.errors?.map((e) => ({
-      field: e.path,
-      message: e.message,
-    }));
-    res
-      .status(400)
-      .json({ error: "Validation failed", details: errors || error.message });
+    res.status(500).json({ error: "Registration failed" });
   }
 });
+
+// Login route
+router.post("/login", async (req, res) => {
+  // Add your login logic here
+});
+
+module.exports = router; // <-- THIS EXPORT WAS MISSING
