@@ -9,7 +9,7 @@ const UpcomingFixtures = () => {
 
   useEffect(() => {
     axios
-      .get('http://localhost:4000/api/fixtures/danish')
+      .get('http://localhost:4000/api/fixtures')
       .then((res) => {
         setFixtures(res.data.data);
         setLoading(false);
