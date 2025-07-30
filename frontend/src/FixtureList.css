@@ -1,4 +1,5 @@
 /* FixtureList.css */
+
 .fixture-list {
   max-width: 1200px;
   margin: 0 auto;
@@ -7,13 +8,18 @@
 
 .fixture-group {
   margin-bottom: 40px;
+  /* separator for groups */
+  border-bottom: 2px solid #eee;
+  padding-bottom: 20px;
 }
 
 .date-header {
   color: #333;
-  border-bottom: 2px solid #eee;
+  border-bottom: none; /* removed because border used on group */
   padding-bottom: 10px;
   margin-bottom: 20px;
+  font-weight: 700;
+  font-size: 1.5rem;
 }
 
 .fixture-grid {
@@ -23,6 +29,7 @@
 }
 
 /* FixtureCard.css */
+
 .fixture-card {
   display: flex;
   align-items: center;
@@ -32,6 +39,18 @@
   border-radius: 8px;
   background: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.fixture-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px);
+  cursor: pointer;
+}
+
+.fixture-card:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 4px;
 }
 
 .team {
@@ -45,16 +64,46 @@
   height: 40px;
   width: 40px;
   margin-bottom: 10px;
+  object-fit: contain;
+}
+
+.team-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #222;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .match-details {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
+  min-width: 120px;
   margin: 0 20px;
 }
 
 .score {
   font-weight: bold;
   margin-top: 5px;
+}
+
+@media (max-width: 600px) {
+  .fixture-list {
+    padding: 10px;
+  }
+
+  .fixture-card {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .team {
+    flex: none;
+  }
+
+  .match-details {
+    min-width: auto;
+  }
 }
