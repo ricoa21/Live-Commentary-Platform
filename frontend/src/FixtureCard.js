@@ -3,13 +3,17 @@ import './FixtureCard.css';
 
 function FixtureCard({ fixture }) {
   if (!fixture || !fixture.participants) {
-    return <div className="fixture-card loading">Loading fixture data...</div>;
+    return (
+      <div className="fixture-card loading" role="status" aria-live="polite">
+        Loading fixture data...
+      </div>
+    );
   }
 
   const localTeam =
-    fixture.participants.find((team) => team.meta.location === 'home') || {};
+    fixture.participants.find((team) => team.meta?.location === 'home') || {};
   const visitorTeam =
-    fixture.participants.find((team) => team.meta.location === 'away') || {};
+    fixture.participants.find((team) => team.meta?.location === 'away') || {};
 
   const formatDate = (dateString) => {
     if (!dateString) return 'TBA';
@@ -35,43 +39,79 @@ function FixtureCard({ fixture }) {
     !fixture.commentators || fixture.commentators.length < 2;
 
   return (
-    <div className={`fixture-card ${isLive ? 'live' : ''}`}>
-      <div className="fixture-header">
-        <img
-          className="team-logo"
-          src={localTeam.image_path || 'default-logo.png'}
-          alt={localTeam.name || 'Local Team'}
-          onError={(e) => {
-            e.target.src = 'default-logo.png';
-          }}
-        />
-        <h3>
-          {localTeam.name || 'Local Team'} vs{' '}
-          {visitorTeam.name || 'Visitor Team'}
-        </h3>
-        <img
-          className="team-logo"
-          src={visitorTeam.image_path || 'default-logo.png'}
-          alt={visitorTeam.name || 'Visitor Team'}
-          onError={(e) => {
-            e.target.src = 'default-logo.png';
-          }}
-        />
-      </div>
-      <p>Date: {formatDate(fixture.starting_at)}</p>
-      <p>Time: {formatTime(fixture.starting_at)}</p>
-      {isLive && <p className="live-indicator">LIVE NOW</p>}
-      {commentatorAvailable ? (
-        <button className="commentate-button">Become a Commentator</button>
-      ) : (
-        <button className="commentate-button" disabled>
-          Commentators Full
-        </button>
-      )}
-      <a href={`/live-commentary/${fixture.id}`} className="watch-button">
-        {isLive ? 'Watch Live' : 'View Match Details'}
-      </a>
-    </div>
+    <article
+      className={`fixture-card ${isLive ? 'live' : ''}`}
+      tabIndex={0}
+      aria-label={`${localTeam.name || 'Home team'} versus ${visitorTeam.name || 'Away team'}, starting at ${formatDate(fixture.starting_at)} ${formatTime(fixture.starting_at)}`}
+    >
+      <header className="fixture-header">
+        <div className="team home-team">
+          <img
+            className="team-logo"
+            src={localTeam.image_path || 'default-logo.png'}
+            alt={`${localTeam.name || 'Home team'} logo`}
+            onError={(e) => {
+              e.target.src = 'default-logo.png';
+            }}
+          />
+          <span className="team-name">{localTeam.name || 'Home team'}</span>
+        </div>
+
+        <h3 className="vs-text">vs</h3>
+
+        <div className="team away-team">
+          <img
+            className="team-logo"
+            src={visitorTeam.image_path || 'default-logo.png'}
+            alt={`${visitorTeam.name || 'Away team'} logo`}
+            onError={(e) => {
+              e.target.src = 'default-logo.png';
+            }}
+          />
+          <span className="team-name">{visitorTeam.name || 'Away team'}</span>
+        </div>
+      </header>
+
+      <section className="match-info">
+        <p className="match-date">
+          Date:{' '}
+          <time dateTime={fixture.starting_at}>
+            {formatDate(fixture.starting_at)}
+          </time>
+        </p>
+        <p className="match-time">
+          Time:{' '}
+          <time dateTime={fixture.starting_at}>
+            {formatTime(fixture.starting_at)}
+          </time>
+        </p>
+        {isLive && (
+          <p className="live-indicator" aria-live="assertive">
+            LIVE NOW
+          </p>
+        )}
+      </section>
+
+      <section className="fixture-actions">
+        {commentatorAvailable ? (
+          <button type="button" className="commentate-button">
+            Become a Commentator
+          </button>
+        ) : (
+          <button type="button" className="commentate-button" disabled>
+            Commentators Full
+          </button>
+        )}
+
+        <a
+          href={`/live-commentary/${fixture.id}`}
+          className="watch-button"
+          aria-label={isLive ? 'Watch live match' : 'View match details'}
+        >
+          {isLive ? 'Watch Live' : 'View Match Details'}
+        </a>
+      </section>
+    </article>
   );
 }
 
