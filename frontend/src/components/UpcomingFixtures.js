@@ -9,24 +9,20 @@ const UpcomingFixtures = () => {
 
   useEffect(() => {
     axios
-      .get('/api/fixtures/danish') // Use relative path with proxy for dev
+      .get('http://localhost:4000/api/fixtures/danish')
+
       .then((res) => {
         setFixtures(res.data.data);
         setLoading(false);
       })
       .catch((err) => {
-        setError('Failed to load fixtures. Please try again.');
+        setError(err.message);
         setLoading(false);
       });
   }, []);
 
-  if (loading)
-    return (
-      <div role="status" aria-live="polite">
-        Loading fixtures...
-      </div>
-    );
-  if (error) return <div role="alert">Error: {error}</div>;
+  if (loading) return <div className="loading">Loading fixtures...</div>;
+  if (error) return <div className="error">Error: {error}</div>;
   if (!fixtures.length) return <div>No upcoming matches found.</div>;
 
   return <FixtureList fixtures={fixtures} />;
